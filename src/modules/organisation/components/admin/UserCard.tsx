@@ -8,10 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, Trash2, Phone, MapPin, IdCard, Mail, Eye, Settings } from 'lucide-react';
-import EditableField from '@/components/profile/EditableField';
 import { toast } from '@/components/ui/use-toast';
-import { DepartmentRolePairsDisplay } from '@/components/admin/DepartmentRolePairsDisplay';
-import type { UserProfile } from '@/hooks/useUserProfiles';
+import type { UserProfile } from '../../types';
 
 interface UserCardProps {
   user: UserProfile;
@@ -99,7 +97,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
             <div>
               <h3 className="font-medium">{user.full_name || 'No name'}</h3>
               <div className="text-sm text-muted-foreground">
-                <DepartmentRolePairsDisplay userId={user.id} />
+                {user.role && user.department ? `${user.department} → ${user.role}` : user.role || user.department || 'No role/department'}
               </div>
             </div>
           </div>
@@ -111,18 +109,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2">
             <Mail className="h-3 w-3 text-muted-foreground" />
-            <EditableField
-              value={user.email || 'No email'}
-              fieldKey="email"
-              placeholder="Enter email"
-              className="flex-1"
-              inputClassName="text-sm"
-              onSave={handleFieldSave}
-              isEditing={editingField === 'email'}
-              onEdit={setEditingField}
-              onCancel={() => setEditingField(null)}
-              saving={saving}
-            />
+            <span className="text-muted-foreground">{user.email || 'No email'}</span>
           </div>
           <div className="flex items-center gap-2">
             <IdCard className="h-3 w-3 text-muted-foreground" />

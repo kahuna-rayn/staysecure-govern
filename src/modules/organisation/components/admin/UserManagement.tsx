@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useUserProfiles } from '@/hooks/useUserProfiles';
-import { useUserManagement } from '@/hooks/useUserManagement';
+import { useUserProfiles } from '../../hooks/useUserProfiles';
+import { useUserManagement } from '../../hooks/useUserManagement';
 import { useViewPreference } from '@/hooks/useViewPreference';
 import { handleSaveUser, handleCreateUser, handleDeleteUser } from '../../utils/userManagementActions';
 import { Button } from '@/components/ui/button';

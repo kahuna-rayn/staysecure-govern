@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EditableTable } from '@/components/ui/editable-table';
-import type { UserProfile } from '@/hooks/useUserProfiles';
+import type { UserProfile } from '../../types';
 
 interface UserTableProps {
   profiles: UserProfile[];

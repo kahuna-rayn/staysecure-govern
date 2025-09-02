@@ -51,6 +51,16 @@ export interface UserProfile {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
+  manager?: string;
+  start_date?: string;
+  password_last_changed?: string;
+  two_factor_enabled?: boolean;
+  cyber_learner?: boolean;
+  dpe_learner?: boolean;
+  learn_complete?: boolean;
+  dpe_complete?: boolean;
+  enrolled_in_learn?: boolean;
+  language?: string;
 }
 
 export interface NewUser {

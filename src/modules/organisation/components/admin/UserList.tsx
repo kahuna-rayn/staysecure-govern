@@ -1,7 +1,7 @@
 
 import React from 'react';
 import UserCard from './UserCard';
-import type { UserProfile } from '@/hooks/useUserProfiles';
+import type { UserProfile } from '../../types';
 
 interface UserListProps {
   profiles: UserProfile[];
