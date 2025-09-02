@@ -1,9 +1,9 @@
+
+import React from "react";
+import Dashboard from "@/components/Dashboard";
+
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Ready for your code */}
-    </div>
-  );
+  return <Dashboard />;
 };
 
 export default Index;

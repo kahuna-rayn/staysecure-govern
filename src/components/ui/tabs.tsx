@@ -8,16 +8,22 @@ const Tabs = TabsPrimitive.Root
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, style, ...props }, ref) => {
+  // Check if grid is being used in className or if gridTemplateColumns is in style
+  const isGrid = className?.includes('grid') || style?.gridTemplateColumns
+  
+  return (
+    <TabsPrimitive.List
+      ref={ref}
+      className={cn(
+        isGrid ? "grid h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground" : "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+        className
+      )}
+      style={style}
+      {...props}
+    />
+  )
+})
 TabsList.displayName = TabsPrimitive.List.displayName
 
 const TabsTrigger = React.forwardRef<

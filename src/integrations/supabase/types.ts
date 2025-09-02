@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
+  // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -297,84 +297,6 @@ export type Database = {
         }
         Relationships: []
       }
-      customer_product_licenses: {
-        Row: {
-          customer_id: string
-          end_date: string | null
-          id: string
-          language: string
-          product_id: string
-          seats: number
-          start_date: string | null
-          term: number
-        }
-        Insert: {
-          customer_id: string
-          end_date?: string | null
-          id?: string
-          language: string
-          product_id: string
-          seats: number
-          start_date?: string | null
-          term: number
-        }
-        Update: {
-          customer_id?: string
-          end_date?: string | null
-          id?: string
-          language?: string
-          product_id?: string
-          seats?: number
-          start_date?: string | null
-          term?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "customer_product_licenses_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "customer_product_licenses_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      customers: {
-        Row: {
-          customer_name: string
-          email: string | null
-          endpoints: number | null
-          id: string
-          is_active: boolean | null
-          primary_contact: string | null
-          short_name: string
-        }
-        Insert: {
-          customer_name: string
-          email?: string | null
-          endpoints?: number | null
-          id?: string
-          is_active?: boolean | null
-          primary_contact?: string | null
-          short_name: string
-        }
-        Update: {
-          customer_name?: string
-          email?: string | null
-          endpoints?: number | null
-          id?: string
-          is_active?: boolean | null
-          primary_contact?: string | null
-          short_name?: string
-        }
-        Relationships: []
-      }
       departments: {
         Row: {
           created_at: string
@@ -585,135 +507,6 @@ export type Database = {
           updated_at?: string
           url?: string | null
           version?: number
-        }
-        Relationships: []
-      }
-      email_notifications: {
-        Row: {
-          created_at: string | null
-          email: string
-          error_message: string | null
-          id: string
-          message: string
-          retry_count: number | null
-          scheduled_for: string | null
-          sent_at: string | null
-          status: string
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          error_message?: string | null
-          id?: string
-          message: string
-          retry_count?: number | null
-          scheduled_for?: string | null
-          sent_at?: string | null
-          status?: string
-          title: string
-          type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          error_message?: string | null
-          id?: string
-          message?: string
-          retry_count?: number | null
-          scheduled_for?: string | null
-          sent_at?: string | null
-          status?: string
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      email_preferences: {
-        Row: {
-          achievements: boolean | null
-          course_completions: boolean | null
-          created_at: string | null
-          email_enabled: boolean | null
-          lesson_reminders: boolean | null
-          quiet_hours_enabled: boolean | null
-          quiet_hours_end: string | null
-          quiet_hours_start: string | null
-          system_alerts: boolean | null
-          task_due_dates: boolean | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          achievements?: boolean | null
-          course_completions?: boolean | null
-          created_at?: string | null
-          email_enabled?: boolean | null
-          lesson_reminders?: boolean | null
-          quiet_hours_enabled?: boolean | null
-          quiet_hours_end?: string | null
-          quiet_hours_start?: string | null
-          system_alerts?: boolean | null
-          task_due_dates?: boolean | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          achievements?: boolean | null
-          course_completions?: boolean | null
-          created_at?: string | null
-          email_enabled?: boolean | null
-          lesson_reminders?: boolean | null
-          quiet_hours_enabled?: boolean | null
-          quiet_hours_end?: string | null
-          quiet_hours_start?: string | null
-          system_alerts?: boolean | null
-          task_due_dates?: boolean | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      email_templates: {
-        Row: {
-          created_at: string | null
-          html_body_template: string
-          id: string
-          is_active: boolean | null
-          name: string
-          subject_template: string
-          text_body_template: string | null
-          type: string
-          updated_at: string | null
-          variables: Json | null
-        }
-        Insert: {
-          created_at?: string | null
-          html_body_template: string
-          id?: string
-          is_active?: boolean | null
-          name: string
-          subject_template: string
-          text_body_template?: string | null
-          type: string
-          updated_at?: string | null
-          variables?: Json | null
-        }
-        Update: {
-          created_at?: string | null
-          html_body_template?: string
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          subject_template?: string
-          text_body_template?: string | null
-          type?: string
-          updated_at?: string | null
-          variables?: Json | null
         }
         Relationships: []
       }
@@ -975,55 +768,12 @@ export type Database = {
           },
         ]
       }
-      languages: {
-        Row: {
-          code: string
-          created_at: string | null
-          display_name: string | null
-          fallback_engine: string | null
-          flag_emoji: string | null
-          is_active: boolean | null
-          is_beta: boolean | null
-          name: string
-          native_name: string | null
-          preferred_engine: string | null
-          sort_order: number | null
-        }
-        Insert: {
-          code: string
-          created_at?: string | null
-          display_name?: string | null
-          fallback_engine?: string | null
-          flag_emoji?: string | null
-          is_active?: boolean | null
-          is_beta?: boolean | null
-          name: string
-          native_name?: string | null
-          preferred_engine?: string | null
-          sort_order?: number | null
-        }
-        Update: {
-          code?: string
-          created_at?: string | null
-          display_name?: string | null
-          fallback_engine?: string | null
-          flag_emoji?: string | null
-          is_active?: boolean | null
-          is_beta?: boolean | null
-          name?: string
-          native_name?: string | null
-          preferred_engine?: string | null
-          sort_order?: number | null
-        }
-        Relationships: []
-      }
       learning_track_assignments: {
         Row: {
           assigned_at: string | null
           assigned_by: string | null
           assignment_id: string
           completion_required: boolean | null
-          due_date: string | null
           learning_track_id: string
           notes: string | null
           reminder_sent: boolean | null
@@ -1035,7 +785,6 @@ export type Database = {
           assigned_by?: string | null
           assignment_id?: string
           completion_required?: boolean | null
-          due_date?: string | null
           learning_track_id: string
           notes?: string | null
           reminder_sent?: boolean | null
@@ -1047,7 +796,6 @@ export type Database = {
           assigned_by?: string | null
           assignment_id?: string
           completion_required?: boolean | null
-          due_date?: string | null
           learning_track_id?: string
           notes?: string | null
           reminder_sent?: boolean | null
@@ -1291,89 +1039,10 @@ export type Database = {
           },
         ]
       }
-      lesson_node_translations: {
-        Row: {
-          character_count: number | null
-          content_hash: string | null
-          content_translated: string
-          created_at: string | null
-          engine_used: string
-          id: string
-          is_outdated: boolean | null
-          language_code: string | null
-          media_alt_translated: string | null
-          needs_review: boolean | null
-          node_id: string
-          quality_score: number | null
-          reviewed_by: string | null
-          source_content_hash: string | null
-          status: string | null
-          translated_by: string | null
-          translation_cost: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          character_count?: number | null
-          content_hash?: string | null
-          content_translated: string
-          created_at?: string | null
-          engine_used: string
-          id?: string
-          is_outdated?: boolean | null
-          language_code?: string | null
-          media_alt_translated?: string | null
-          needs_review?: boolean | null
-          node_id: string
-          quality_score?: number | null
-          reviewed_by?: string | null
-          source_content_hash?: string | null
-          status?: string | null
-          translated_by?: string | null
-          translation_cost?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          character_count?: number | null
-          content_hash?: string | null
-          content_translated?: string
-          created_at?: string | null
-          engine_used?: string
-          id?: string
-          is_outdated?: boolean | null
-          language_code?: string | null
-          media_alt_translated?: string | null
-          needs_review?: boolean | null
-          node_id?: string
-          quality_score?: number | null
-          reviewed_by?: string | null
-          source_content_hash?: string | null
-          status?: string | null
-          translated_by?: string | null
-          translation_cost?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lesson_node_translations_language_code_fkey"
-            columns: ["language_code"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "lesson_node_translations_node_id_fkey"
-            columns: ["node_id"]
-            isOneToOne: false
-            referencedRelation: "lesson_nodes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       lesson_nodes: {
         Row: {
           allow_multiple: boolean | null
           content: string
-          content_hash: string | null
           created_at: string
           embedded_lesson_id: string | null
           id: string
@@ -1392,7 +1061,6 @@ export type Database = {
         Insert: {
           allow_multiple?: boolean | null
           content: string
-          content_hash?: string | null
           created_at?: string
           embedded_lesson_id?: string | null
           id: string
@@ -1411,7 +1079,6 @@ export type Database = {
         Update: {
           allow_multiple?: boolean | null
           content?: string
-          content_hash?: string | null
           created_at?: string
           embedded_lesson_id?: string | null
           id?: string
@@ -1444,81 +1111,6 @@ export type Database = {
           },
         ]
       }
-      lesson_translations: {
-        Row: {
-          character_count: number | null
-          created_at: string | null
-          description_translated: string | null
-          engine_used: string
-          id: string
-          is_outdated: boolean | null
-          language_code: string | null
-          lesson_id: string
-          needs_review: boolean | null
-          quality_score: number | null
-          reviewed_by: string | null
-          source_content_hash: string | null
-          status: string | null
-          title_translated: string
-          translated_by: string | null
-          translation_cost: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          character_count?: number | null
-          created_at?: string | null
-          description_translated?: string | null
-          engine_used: string
-          id?: string
-          is_outdated?: boolean | null
-          language_code?: string | null
-          lesson_id: string
-          needs_review?: boolean | null
-          quality_score?: number | null
-          reviewed_by?: string | null
-          source_content_hash?: string | null
-          status?: string | null
-          title_translated: string
-          translated_by?: string | null
-          translation_cost?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          character_count?: number | null
-          created_at?: string | null
-          description_translated?: string | null
-          engine_used?: string
-          id?: string
-          is_outdated?: boolean | null
-          language_code?: string | null
-          lesson_id?: string
-          needs_review?: boolean | null
-          quality_score?: number | null
-          reviewed_by?: string | null
-          source_content_hash?: string | null
-          status?: string | null
-          title_translated?: string
-          translated_by?: string | null
-          translation_cost?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lesson_translations_language_code_fkey"
-            columns: ["language_code"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "lesson_translations_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       lessons: {
         Row: {
           created_at: string
@@ -1531,7 +1123,6 @@ export type Database = {
           status: string
           title: string
           updated_at: string
-          updated_by: string | null
         }
         Insert: {
           created_at?: string
@@ -1544,7 +1135,6 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
-          updated_by?: string | null
         }
         Update: {
           created_at?: string
@@ -1557,9 +1147,47 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
-          updated_by?: string | null
         }
         Relationships: []
+      }
+      licenses: {
+        Row: {
+          assigned_on: string
+          expires_on: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_on?: string
+          expires_on: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_on?: string
+          expires_on?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "licenses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_roles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       locations: {
         Row: {
@@ -1795,57 +1423,21 @@ export type Database = {
           },
         ]
       }
-      product_license_assignments: {
-        Row: {
-          access_level: Database["public"]["Enums"]["access_level_type"]
-          id: string
-          license_id: string
-          user_id: string
-        }
-        Insert: {
-          access_level?: Database["public"]["Enums"]["access_level_type"]
-          id?: string
-          license_id: string
-          user_id: string
-        }
-        Update: {
-          access_level?: Database["public"]["Enums"]["access_level_type"]
-          id?: string
-          license_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_product_licenses_license_id_fkey"
-            columns: ["license_id"]
-            isOneToOne: false
-            referencedRelation: "customer_product_licenses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_product_licenses_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       products: {
         Row: {
           id: string
           name: string
-          version: number | null
+          version: number
         }
         Insert: {
           id?: string
           name: string
-          version?: number | null
+          version: number
         }
         Update: {
           id?: string
           name?: string
-          version?: number | null
+          version?: number
         }
         Relationships: []
       }
@@ -1860,15 +1452,12 @@ export type Database = {
           dpe_learner: boolean | null
           employee_id: string | null
           enrolled_in_learn: boolean | null
-          first_name: string | null
           full_name: string | null
           id: string
           language: string | null
           last_login: string | null
-          last_name: string | null
           learn_complete: boolean | null
           location: string | null
-          location_id: string | null
           manager: string | null
           password_last_changed: string | null
           phone: string | null
@@ -1888,15 +1477,12 @@ export type Database = {
           dpe_learner?: boolean | null
           employee_id?: string | null
           enrolled_in_learn?: boolean | null
-          first_name?: string | null
           full_name?: string | null
           id: string
           language?: string | null
           last_login?: string | null
-          last_name?: string | null
           learn_complete?: boolean | null
           location?: string | null
-          location_id?: string | null
           manager?: string | null
           password_last_changed?: string | null
           phone?: string | null
@@ -1916,15 +1502,12 @@ export type Database = {
           dpe_learner?: boolean | null
           employee_id?: string | null
           enrolled_in_learn?: boolean | null
-          first_name?: string | null
           full_name?: string | null
           id?: string
           language?: string | null
           last_login?: string | null
-          last_name?: string | null
           learn_complete?: boolean | null
           location?: string | null
-          location_id?: string | null
           manager?: string | null
           password_last_changed?: string | null
           phone?: string | null
@@ -1935,13 +1518,6 @@ export type Database = {
           username?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "profiles_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "locations"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "profiles_manager_fkey"
             columns: ["manager"]
@@ -2039,152 +1615,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      translation_change_log: {
-        Row: {
-          affected_translations: number | null
-          change_magnitude: string | null
-          change_type: string
-          character_difference: number | null
-          estimated_retranslation_cost: number | null
-          field_name: string
-          id: string
-          lesson_id: string | null
-          new_hash: string | null
-          new_value: string | null
-          old_hash: string | null
-          old_value: string | null
-          record_id: string
-          table_name: string
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          affected_translations?: number | null
-          change_magnitude?: string | null
-          change_type: string
-          character_difference?: number | null
-          estimated_retranslation_cost?: number | null
-          field_name: string
-          id?: string
-          lesson_id?: string | null
-          new_hash?: string | null
-          new_value?: string | null
-          old_hash?: string | null
-          old_value?: string | null
-          record_id: string
-          table_name: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          affected_translations?: number | null
-          change_magnitude?: string | null
-          change_type?: string
-          character_difference?: number | null
-          estimated_retranslation_cost?: number | null
-          field_name?: string
-          id?: string
-          lesson_id?: string | null
-          new_hash?: string | null
-          new_value?: string | null
-          old_hash?: string | null
-          old_value?: string | null
-          record_id?: string
-          table_name?: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "translation_change_log_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      translation_jobs: {
-        Row: {
-          actual_duration: number | null
-          completed_at: string | null
-          completed_items: number | null
-          created_at: string | null
-          error_message: string | null
-          estimated_duration: number | null
-          failed_items: number | null
-          id: string
-          lesson_id: string
-          max_retries: number | null
-          priority: number | null
-          requested_by: string | null
-          retry_count: number | null
-          status: string | null
-          target_language: string | null
-          total_characters: number | null
-          total_cost: number | null
-          total_items: number
-          updated_at: string | null
-        }
-        Insert: {
-          actual_duration?: number | null
-          completed_at?: string | null
-          completed_items?: number | null
-          created_at?: string | null
-          error_message?: string | null
-          estimated_duration?: number | null
-          failed_items?: number | null
-          id?: string
-          lesson_id: string
-          max_retries?: number | null
-          priority?: number | null
-          requested_by?: string | null
-          retry_count?: number | null
-          status?: string | null
-          target_language?: string | null
-          total_characters?: number | null
-          total_cost?: number | null
-          total_items: number
-          updated_at?: string | null
-        }
-        Update: {
-          actual_duration?: number | null
-          completed_at?: string | null
-          completed_items?: number | null
-          created_at?: string | null
-          error_message?: string | null
-          estimated_duration?: number | null
-          failed_items?: number | null
-          id?: string
-          lesson_id?: string
-          max_retries?: number | null
-          priority?: number | null
-          requested_by?: string | null
-          retry_count?: number | null
-          status?: string | null
-          target_language?: string | null
-          total_characters?: number | null
-          total_cost?: number | null
-          total_items?: number
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "translation_jobs_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "translation_jobs_target_language_fkey"
-            columns: ["target_language"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["code"]
-          },
-        ]
       }
       user_answer_responses: {
         Row: {
@@ -2548,49 +1978,6 @@ export type Database = {
       }
     }
     Functions: {
-      assess_change_magnitude: {
-        Args: { new_value: string; old_value: string }
-        Returns: string
-      }
-      check_outdated_status: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          needs_fixing: boolean
-          outdated_completed: number
-          table_name: string
-          total_completed: number
-        }[]
-      }
-      debug_outdated_status: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          is_outdated: boolean
-          language_code: string
-          last_modified: string
-          lesson_id: string
-          lesson_title: string
-          translation_updated: string
-        }[]
-      }
-      debug_translation_data: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          created_at: string
-          language_code: string
-          lesson_id: string
-          lesson_title: string
-          status: string
-          translation_cost: number
-        }[]
-      }
-      fix_existing_outdated_flags: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_content_hash: {
-        Args: { content: string; media_alt?: string }
-        Returns: string
-      }
       generate_document_assignments: {
         Args: { doc_id: string }
         Returns: undefined
@@ -2599,23 +1986,6 @@ export type Database = {
         Args: { track_id: string }
         Returns: undefined
       }
-      get_active_translation_jobs: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          completed_items: number
-          created_at: string
-          estimated_seconds_remaining: number
-          failed_items: number
-          id: string
-          lesson_title: string
-          progress_percentage: number
-          status: string
-          target_language: string
-          total_cost: number
-          total_items: number
-          updated_at: string
-        }[]
-      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
@@ -2623,94 +1993,25 @@ export type Database = {
       get_key_dates: {
         Args: Record<PropertyKey, never>
         Returns: {
-          certificate: string
-          created_at: string
-          created_by: string
-          due_date: string
-          frequency: string
           id: string
           key_activity: string
-          modified_at: string
-          modified_by: string
+          due_date: string
           updated_due_date: string
-        }[]
-      }
-      get_lessons_with_outdated_content: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          last_modified: string
-          lesson_id: string
-          lesson_title: string
-          outdated_languages: Json
-        }[]
-      }
-      get_monthly_translation_spend: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          spend_by_language: Json
-          total_monthly_spend: number
-        }[]
-      }
-      get_nodes_needing_translation: {
-        Args: { language_code: string; lesson_id: string }
-        Returns: {
-          content: string
-          content_hash: string
-          last_translation_hash: string
-          media_alt: string
-          needs_translation: boolean
-          node_id: string
-        }[]
-      }
-      get_outdated_lessons: {
-        Args: Record<PropertyKey, never>
-        Returns: {
+          frequency: string
+          certificate: string
+          created_at: string
+          modified_at: string
           created_by: string
-          id: string
-          last_modified: string
-          node_count: number
-          outdated_count: number
-          outdated_node_count: number
-          title: string
-          translation_count: number
-        }[]
-      }
-      get_outdated_lessons_grouped: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          created_by: string
-          last_modified: string
-          lesson_id: string
-          lesson_title: string
-          outdated_languages: Json
-        }[]
-      }
-      get_recent_translation_activity: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          activity_time: string
-          activity_type: string
-          cost: number
-          language_code: string
-          lesson_title: string
-          user_email: string
-        }[]
-      }
-      get_translation_dashboard_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          lessons_needing_updates: number
-          total_lessons: number
-          translated_lessons: number
+          modified_by: string
         }[]
       }
       get_user_assigned_tracks: {
         Args: { user_id: string }
         Returns: {
-          assignment_id: string
-          completion_required: boolean
-          status: string
           track_id: string
+          assignment_id: string
+          status: string
+          completion_required: boolean
         }[]
       }
       get_user_email_by_id: {
@@ -2725,32 +2026,12 @@ export type Database = {
       }
       has_role: {
         Args:
-          | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
-          | { required_role: string; user_id: string }
+          | { _user_id: string; _role: Database["public"]["Enums"]["app_role"] }
+          | { user_id: string; required_role: string }
         Returns: boolean
-      }
-      mark_lesson_translations_outdated_manual: {
-        Args: { lesson_uuid: string }
-        Returns: undefined
-      }
-      refresh_outdated_status: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      send_email_notification: {
-        Args: {
-          p_email: string
-          p_message: string
-          p_scheduled_for?: string
-          p_title: string
-          p_type: string
-          p_user_id: string
-        }
-        Returns: string
       }
     }
     Enums: {
-      access_level_type: "admin" | "manager" | "user"
       activity_type:
         | "Risk assessment"
         | "Incident response"
@@ -2893,7 +2174,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      access_level_type: ["admin", "manager", "user"],
       activity_type: [
         "Risk assessment",
         "Incident response",
