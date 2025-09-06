@@ -58,7 +58,6 @@ const InventoryPanel: React.FC = () => {
           <h1 className="text-3xl font-bold">Inventory Management</h1>
           <p className="text-muted-foreground">Manage hardware, software, accounts, physical locations and import data</p>
         </div>
-        <RoleBadge role={role} />
       </div>
 
       {/* Admin Tabs */}

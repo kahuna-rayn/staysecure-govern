@@ -27,9 +27,6 @@ const KnowledgePanel: React.FC = () => {
             Manage organizational documents, policies, and compliance tracking
           </p>
         </div>
-        {hasPermission('moderator') && (
-          <RoleBadge role={role} />
-        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
