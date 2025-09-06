@@ -57,7 +57,7 @@ const ProfileContactInfo: React.FC<ProfileContactInfoProps> = ({
 
       <div className="flex items-center gap-2 text-sm">
         <Shield className="h-4 w-4 text-muted-foreground" />
-        <Badge variant={twoFactorEnabled ? 'default' : 'red'}>
+        <Badge variant={twoFactorEnabled ? 'default' : 'secondary'}>
           2FA {twoFactorEnabled ? 'Enabled' : 'Disabled'}
         </Badge>
       </div>
