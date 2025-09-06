@@ -134,6 +134,7 @@ const EditableProfileHeader: React.FC<EditableProfileHeaderProps> = ({
               lastLogin={profile.account?.lastLogin}
               passwordLastChanged={profile.account?.passwordLastChanged}
               twoFactorEnabled={profile.account?.twoFactorEnabled}
+              userId={profile.id}
             />
           </div>
         </div>

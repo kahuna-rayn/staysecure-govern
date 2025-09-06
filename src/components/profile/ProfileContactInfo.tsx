@@ -2,6 +2,7 @@
 import React from "react";
 import { Calendar, Shield, Clock, Key } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useUserProfileRoles } from "@/hooks/useUserProfileRoles";
 
 interface ProfileContactInfoProps {
   startDate: string;
@@ -11,6 +12,7 @@ interface ProfileContactInfoProps {
   lastLogin?: string;
   passwordLastChanged?: string;
   twoFactorEnabled?: boolean;
+  userId?: string; // Add userId to fetch user roles
 }
 
 const ProfileContactInfo: React.FC<ProfileContactInfoProps> = ({
@@ -19,8 +21,10 @@ const ProfileContactInfo: React.FC<ProfileContactInfoProps> = ({
   accessLevel,
   lastLogin,
   passwordLastChanged,
-  twoFactorEnabled
+  twoFactorEnabled,
+  userId
 }) => {
+  const { primaryRole } = useUserProfileRoles(userId);
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Not set';
     return new Date(dateString).toLocaleDateString();
@@ -38,7 +42,13 @@ const ProfileContactInfo: React.FC<ProfileContactInfoProps> = ({
 
       <div className="flex items-center gap-2 text-sm">
         <Key className="h-4 w-4 text-muted-foreground" />
-        <span>{accessLevel || 'User'}</span>
+        {primaryRole && primaryRole.role_name === 'client_admin' ? (
+          <Badge className="bg-red-500 text-white border-red-500">
+            Admin
+          </Badge>
+        ) : (
+          <span>{accessLevel || 'User'}</span>
+        )}
       </div>
 
       <div className="flex items-center gap-2 text-sm">

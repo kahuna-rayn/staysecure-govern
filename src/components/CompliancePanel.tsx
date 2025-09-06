@@ -354,10 +354,6 @@ const CompliancePanel: React.FC = () => {
           <h1 className="text-3xl font-bold">Compliance</h1>
           <p className="text-muted-foreground">Critical activities and information to stay cyber and data resilient</p>
         </div>
-        <Badge variant="secondary" className="flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          Compliance Management
-        </Badge>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
