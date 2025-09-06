@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUserRole } from '@/hooks/useUserRole';
 import { BookOpen, FileText, Users, Calendar, CheckCircle } from 'lucide-react';
+import { RoleBadge } from '@/components/ui/role-badge';
 import DocumentManagement from '@/components/knowledge/DocumentManagement';
 import DocumentAssignments from '@/components/knowledge/DocumentAssignments';
 import ComplianceTracking from '@/components/knowledge/ComplianceTracking';
@@ -27,10 +28,7 @@ const KnowledgePanel: React.FC = () => {
           </p>
         </div>
         {hasPermission('moderator') && (
-          <Badge variant="secondary" className="px-3 py-1">
-            <Users className="h-4 w-4 mr-1" />
-            Administrator
-          </Badge>
+          <RoleBadge role={role} />
         )}
       </div>
 
