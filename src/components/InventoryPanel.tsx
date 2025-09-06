@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Users, Plus, Settings, Shield, Package, BarChart, Upload } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { RoleBadge } from '@/components/ui/role-badge';
 import UserManagement from './admin/UserManagement';
 import InventoryManagement from './admin/InventoryManagement';
 import Dashboard from './Dashboard';
@@ -58,7 +57,10 @@ const InventoryPanel: React.FC = () => {
           <h1 className="text-3xl font-bold">Inventory Management</h1>
           <p className="text-muted-foreground">Manage hardware, software, accounts, physical locations and import data</p>
         </div>
-        <RoleBadge role={role} />
+        <Badge variant="secondary" className="flex items-center gap-2">
+          <Shield className="h-4 w-4" />
+          Administrator
+        </Badge>
       </div>
 
       {/* Admin Tabs */}

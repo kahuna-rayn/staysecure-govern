@@ -4,7 +4,6 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { LogOut, Shield } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { RoleBadge } from '@/components/ui/role-badge';
 
 interface NavigationProps {
   currentView: 'dashboard' | 'persona' | 'admin' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management';
@@ -84,13 +83,10 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
               </Button>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <RoleBadge role={role} />
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+          <Button variant="outline" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
       </div>
     </nav>

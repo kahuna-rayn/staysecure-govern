@@ -104,9 +104,11 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
               <div className="text-sm text-muted-foreground">
                 {user.role && user.department ? `${user.department} → ${user.role}` : user.role || user.department || 'No role/department'}
               </div>
-              {primaryRole && (
+              {primaryRole && primaryRole.role_name === 'client_admin' && (
                 <div className="mt-1">
-                  <RoleBadge role={primaryRole.role_name} showIcon={false} className="text-xs h-5" />
+                  <Badge className="bg-red-500 text-white text-xs h-5">
+                    Admin
+                  </Badge>
                 </div>
               )}
             </div>
