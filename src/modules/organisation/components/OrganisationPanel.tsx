@@ -54,12 +54,6 @@ export const OrganisationPanel: React.FC<OrganisationPanelProps> = ({
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-muted-foreground">{description}</p>
         </div>
-        {showAdminBadge && (
-          <Badge variant="secondary" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Administrator
-          </Badge>
-        )}
       </div>
 
       <Card>

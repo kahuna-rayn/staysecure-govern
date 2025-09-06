@@ -106,7 +106,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
               </div>
               {primaryRole && primaryRole.role_name === 'client_admin' && (
                 <div className="mt-1">
-                  <Badge className="bg-red-500 text-white text-xs h-5">
+                  <Badge className="bg-red-500 text-white text-xs h-5 border-red-500">
                     Admin
                   </Badge>
                 </div>
