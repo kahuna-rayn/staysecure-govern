@@ -42,12 +42,16 @@ const ProfileContactInfo: React.FC<ProfileContactInfoProps> = ({
 
       <div className="flex items-center gap-2 text-sm">
         <Key className="h-4 w-4 text-muted-foreground" />
-        {primaryRole && primaryRole.role_name === 'client_admin' ? (
-          <Badge className="bg-red-500 text-white border-red-500">
-            Admin
-          </Badge>
+        {primaryRole ? (
+          primaryRole.role_name === 'client_admin' ? (
+            <Badge className="bg-red-500 text-white border-red-500">
+              Admin
+            </Badge>
+          ) : (
+            <span className="capitalize">{primaryRole.role_name.replace('_', ' ')}</span>
+          )
         ) : (
-          <span>{accessLevel || 'User'}</span>
+          <span>User</span>
         )}
       </div>
 
