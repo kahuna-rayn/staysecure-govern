@@ -6,7 +6,7 @@ import { Shield, Users, BookOpen, AlertTriangle, TrendingUp } from 'lucide-react
 import { useUserRole } from '@/hooks/useUserRole';
 
 const AdminPanel: React.FC = () => {
-  const { isAdmin, loading: roleLoading } = useUserRole();
+  const { hasPermission, loading: roleLoading } = useUserRole();
 
   if (roleLoading) {
     return (

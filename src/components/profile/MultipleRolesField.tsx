@@ -7,6 +7,8 @@ import { Plus, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useUserRole } from '@/hooks/useUserRole';
+import { RoleBadge } from '@/components/ui/role-badge';
 
 interface MultipleRolesFieldProps {
   userId: string;
@@ -26,6 +28,7 @@ const MultipleRolesField: React.FC<MultipleRolesFieldProps> = ({
   const [isAddingRole, setIsAddingRole] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
   const queryClient = useQueryClient();
+  const { canAssignRole } = useUserRole();
 
   // Fetch user's current roles
   const { data: userRoles, isLoading: rolesLoading } = useQuery({
@@ -202,25 +205,25 @@ const MultipleRolesField: React.FC<MultipleRolesFieldProps> = ({
       <div className="flex items-center gap-2 flex-wrap">
         {userRoles?.map((userRole) => (
           <div key={userRole.id} className="flex items-center gap-1">
-            <Badge 
-              variant={userRole.is_primary ? "default" : "secondary"}
-              className="flex items-center gap-1"
-            >
-              {userRole.role_name}
-              {userRole.is_primary && (
-                <span className="text-xs font-normal">(Primary)</span>
-              )}
-              {isEditing && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleRemoveRole(userRole.id)}
-                  className="h-4 w-4 p-0 ml-1 hover:bg-destructive hover:text-destructive-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
-            </Badge>
+            <RoleBadge 
+              role={userRole.role_name}
+              className={userRole.is_primary ? "border-primary bg-primary/10" : ""}
+            />
+            {userRole.is_primary && (
+              <Badge variant="outline" className="text-xs h-5">
+                Primary
+              </Badge>
+            )}
+            {isEditing && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleRemoveRole(userRole.id)}
+                className="h-4 w-4 p-0 ml-1 hover:bg-destructive hover:text-destructive-foreground"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
             {isEditing && !userRole.is_primary && userRoles.length > 1 && (
               <Button
                 size="sm"
@@ -258,10 +261,14 @@ const MultipleRolesField: React.FC<MultipleRolesFieldProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {availableRoles?.filter(role => 
-                  !userRoles?.some(userRole => userRole.role_id === role.role_id)
+                  !userRoles?.some(userRole => userRole.role_id === role.role_id) &&
+                  canAssignRole(role.name as any) // Check if current user can assign this role
                 ).map((role) => (
                   <SelectItem key={role.role_id} value={role.role_id}>
-                    {role.name}
+                    <div className="flex items-center gap-2">
+                      <span>{role.name}</span>
+                      <RoleBadge role={role.name} showIcon={false} className="text-xs h-4" />
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -62,7 +62,7 @@ export interface PersonProfile {
 
 const PersonaProfile: React.FC = () => {
   const { user, signOut } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { hasPermission } = useUserRole();
   const { profile, loading: profileLoading, refetch: refetchProfile } = useProfile();
   const { hardware, software, certificates, loading: assetsLoading, refetch: refetchAssets } = useUserAssets(user?.id);
   
@@ -187,7 +187,7 @@ const PersonaProfile: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {!isAdmin && (
+      {!hasPermission('moderator') && (
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">My Profile</h1>
           <Button variant="outline" onClick={handleSignOut}>

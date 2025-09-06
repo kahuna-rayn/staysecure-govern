@@ -4,6 +4,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { LogOut, Shield } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { RoleBadge } from '@/components/ui/role-badge';
 
 interface NavigationProps {
   currentView: 'dashboard' | 'persona' | 'admin' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management';
@@ -12,7 +13,7 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) => {
   const { signOut } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, hasPermission, role } = useUserRole();
 
   const handleSignOut = async () => {
     try {
@@ -47,7 +48,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
             >
               <span>Compliance</span>
             </Button>
-            {isAdmin && (
+            {hasPermission('moderator') && (
               <Button
                 variant={currentView === 'inventory' ? 'default' : 'ghost'}
                 onClick={() => onViewChange('inventory')}
@@ -56,7 +57,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
                 <span>Inventory</span>
               </Button>
             )}
-             {isAdmin && (<Button
+             {hasPermission('moderator') && (<Button
               variant={currentView === 'certifications' ? 'default' : 'ghost'}
               onClick={() => onViewChange('certifications')}
               className="flex items-center space-x-2"
@@ -64,7 +65,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
               <span>Knowledge</span>
             </Button>
             )}
-            {isAdmin && (
+            {hasPermission('moderator') && (
               <Button
                 variant={currentView === 'breach-management' ? 'default' : 'ghost'}
                 onClick={() => onViewChange('breach-management')}
@@ -73,7 +74,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
                 <span>Breach Management</span>
               </Button>
             )}
-            {isAdmin && (
+            {hasPermission('client_admin') && (
               <Button
                 variant={currentView === 'settings' ? 'default' : 'ghost'}
                 onClick={() => onViewChange('settings')}
@@ -81,12 +82,15 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
               >
                 <span>Organisation</span>
               </Button>
-            )}           
+            )}
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <RoleBadge role={role} />
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
     </nav>

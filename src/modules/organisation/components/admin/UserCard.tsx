@@ -9,6 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, Trash2, Phone, MapPin, IdCard, Mail, Eye, Settings } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { RoleBadge } from '@/components/ui/role-badge';
+import { useUserProfileRoles } from '@/hooks/useUserProfileRoles';
 import type { UserProfile } from '../../types';
 
 interface UserCardProps {
@@ -21,6 +23,9 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
   const navigate = useNavigate();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  
+  // Get user's roles
+  const { primaryRole } = useUserProfileRoles(user.id);
 
   const initials = user.full_name 
     ? user.full_name.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)
@@ -94,11 +99,16 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
               <AvatarImage src={user.avatar_url} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
-            <div>
+            <div className="flex-1">
               <h3 className="font-medium">{user.full_name || 'No name'}</h3>
               <div className="text-sm text-muted-foreground">
                 {user.role && user.department ? `${user.department} → ${user.role}` : user.role || user.department || 'No role/department'}
               </div>
+              {primaryRole && (
+                <div className="mt-1">
+                  <RoleBadge role={primaryRole.role_name} showIcon={false} className="text-xs h-5" />
+                </div>
+              )}
             </div>
           </div>
           <Badge className={`${getStatusColor(user.status || 'Active')} text-white`}>
