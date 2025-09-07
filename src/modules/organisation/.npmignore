@@ -1,0 +1,33 @@
+# Source files
+src/
+components/
+hooks/
+utils/
+context/
+types/
+
+# Build configuration
+vite.config.ts
+tsconfig.json
+tsconfig.node.json
+build.sh
+
+# Development files
+.eslintrc.json
+.gitignore
+CHANGELOG.md
+SUBMODULE_SETUP.md
+LOCATION_MIGRATION_PLAN.md
+MIGRATION_GUIDE.md
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

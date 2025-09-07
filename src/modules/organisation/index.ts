@@ -9,7 +9,7 @@ export { default as UserCard } from './components/admin/UserCard';
 export { default as UserTable } from './components/admin/UserTable';
 export { default as CreateUserDialog } from './components/admin/CreateUserDialog';
 export { default as EditUserDialog } from './components/admin/EditUserDialog';
-
+export { default as UserDetailView } from './components/admin/UserDetailView';
 
 // Hook exports
 export { useUserManagement } from './hooks/useUserManagement';

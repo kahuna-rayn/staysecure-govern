@@ -10,8 +10,8 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'index.ts'),
       name: 'OrganisationManagement',
-      formats: ['es', 'umd'],
-      fileName: (format) => `index.${format === 'es' ? 'esm' : format}.js`
+      formats: ['es', 'cjs'],
+      fileName: (format) => `index.${format === 'es' ? 'esm' : 'cjs'}.js`
     },
     rollupOptions: {
       external: [
@@ -21,8 +21,27 @@ export default defineConfig({
         '@supabase/supabase-js',
         '@tanstack/react-query',
         'react-router-dom',
-        /^@\/components\/ui\/.*/,
-        /^@\/hooks\/.*/,
+        'lucide-react',
+        'class-variance-authority',
+        'clsx',
+        'tailwind-merge',
+        'sonner',
+        '@radix-ui/react-accordion',
+        '@radix-ui/react-alert-dialog',
+        '@radix-ui/react-avatar',
+        '@radix-ui/react-checkbox',
+        '@radix-ui/react-dialog',
+        '@radix-ui/react-dropdown-menu',
+        '@radix-ui/react-label',
+        '@radix-ui/react-popover',
+        '@radix-ui/react-select',
+        '@radix-ui/react-separator',
+        '@radix-ui/react-slot',
+        '@radix-ui/react-switch',
+        '@radix-ui/react-tabs',
+        '@radix-ui/react-toast',
+        '@radix-ui/react-toggle',
+        '@radix-ui/react-toggle-group'
       ],
       output: {
         globals: {
@@ -36,7 +55,7 @@ export default defineConfig({
       }
     },
     sourcemap: true,
-    minify: false
+    minify: 'terser'
   },
   resolve: {
     alias: {
