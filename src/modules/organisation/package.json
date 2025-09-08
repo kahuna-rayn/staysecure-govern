@@ -29,7 +29,7 @@
     "departments",
     "components"
   ],
-  "author": "Your Organization",
+  "author": "Kahuna Rayn",
   "license": "MIT",
   "peerDependencies": {
     "react": "^18.0.0",
@@ -75,10 +75,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourorg/organisation-management-module.git"
+    "url": "https://github.com/kahuna-rayn/organisation-management.git"
   },
   "bugs": {
-    "url": "https://github.com/yourorg/organisation-management-module/issues"
+    "url": "https://github.com/kahuna-rayn/organisation-management/issues"
   },
-  "homepage": "https://github.com/yourorg/organisation-management-module#readme"
+  "homepage": "https://github.com/kahuna-rayn/organisation-management#readme"
 }
