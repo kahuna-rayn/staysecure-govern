@@ -5,6 +5,7 @@ export interface OrganisationConfig {
   enabledTabs?: string[];
   theme?: Partial<ThemeConfig>;
   permissions?: PermissionConfig;
+  notify?: (type: 'success' | 'error', title: string, description: string) => void;
   onNavigate?: (tab: string) => void;
   onUserAction?: (action: string, data?: any) => void;
 }

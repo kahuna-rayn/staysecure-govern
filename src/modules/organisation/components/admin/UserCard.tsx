@@ -2,15 +2,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '../../ui/button';
+import { Badge } from '../../ui/badge';
+import { Card, CardContent } from '../../ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar';
 import { Edit, Trash2, Phone, MapPin, IdCard, Mail, Eye, Settings } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
-import { RoleBadge } from '@/components/ui/role-badge';
-import { useUserProfileRoles } from '@/hooks/useUserProfileRoles';
+import { useOrganisationContext } from '../../context/OrganisationContext';
 import type { UserProfile } from '../../types';
 
 interface UserCardProps {
@@ -23,9 +20,9 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
   const navigate = useNavigate();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const { supabaseClient, notify } = useOrganisationContext();
   
-  // Get user's roles
-  const { primaryRole } = useUserProfileRoles(user.id);
+  // Note: Role logic removed since useUserProfileRoles is not available in module
 
   const initials = user.full_name 
     ? user.full_name.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)
@@ -44,7 +41,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
   const { data: locationAccess = [] } = useQuery({
     queryKey: ['user-location-access', user.email],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('physical_location_access')
         .select('access_purpose, status')
         .eq('user_id', user.id)
@@ -59,27 +56,16 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
     setSaving(true);
     try {
       if (fieldKey === 'email') {
-        toast({
-          title: "Email Update Limitation",
-          description: "Email addresses are managed by authentication and cannot be updated directly from this interface.",
-          variant: "destructive",
-        });
+        notify('error', "Email Update Limitation", "Email addresses are managed by authentication and cannot be updated directly from this interface.");
         return;
       }
       
       const updatedUser = { ...user, [fieldKey]: value };
       onEdit(updatedUser);
       
-      toast({
-        title: "Field updated",
-        description: `${fieldKey} has been updated successfully.`,
-      });
+      notify('success', "Field updated", `${fieldKey} has been updated successfully.`);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      notify('error', "Error", error.message);
     } finally {
       setSaving(false);
       setEditingField(null);
@@ -104,7 +90,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
               <div className="text-sm text-muted-foreground">
                 {user.role && user.department ? `${user.department} → ${user.role}` : user.role || user.department || 'No role/department'}
               </div>
-              {primaryRole && primaryRole.role_name === 'client_admin' && (
+              {user.access_level === 'Admin' && (
                 <div className="mt-1">
                   <Badge className="bg-red-500 text-white text-xs h-5 border-red-500">
                     Admin

@@ -2,6 +2,7 @@ import React from 'react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import { OrganisationPanel, OrganisationProvider } from '@/modules/organisation';
+import { toast } from '@/components/ui/use-toast';
 
 const SettingsPanel: React.FC = () => {
   const { isSuperAdmin, isClientAdmin, hasPermission, loading: roleLoading } = useUserRole();
@@ -26,6 +27,9 @@ const SettingsPanel: React.FC = () => {
       canManageLocations: hasPermission('client_admin'),
       canManageCertificates: hasPermission('client_admin'),
       canManageProfile: hasPermission('client_admin'),
+    },
+    notify: (type: 'success' | 'error', title: string, description: string) => {
+      toast({ title, description, variant: type === 'error' ? 'destructive' : 'default' });
     },
     onNavigate: (tab: string) => console.log(`Navigated to ${tab}`),
     onUserAction: (action: string, data?: any) => console.log(`User action: ${action}`, data),

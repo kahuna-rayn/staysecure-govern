@@ -4,6 +4,7 @@ import type { OrganisationConfig } from '../types';
 interface OrganisationContextValue extends OrganisationConfig {
   isTabEnabled: (tab: string) => boolean;
   hasPermission: (permission: keyof NonNullable<OrganisationConfig['permissions']>) => boolean;
+  notify: (type: 'success' | 'error', title: string, description: string) => void;
 }
 
 const OrganisationContext = createContext<OrganisationContextValue | null>(null);
@@ -41,6 +42,7 @@ export const OrganisationProvider: React.FC<OrganisationProviderProps> = ({ conf
     ...config,
     isTabEnabled,
     hasPermission,
+    notify: config.notify || (() => {}),
   };
 
   return (

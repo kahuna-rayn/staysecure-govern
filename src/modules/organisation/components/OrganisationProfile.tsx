@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Separator } from '../ui/separator';
 import { Edit, Save, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useOrganisationContext } from '../context/OrganisationContext';
 import SearchableProfileField from './SearchableProfileField';
 
 interface OrganisationData {
@@ -53,6 +52,7 @@ interface SignatoryData {
 }
 
 const OrganisationProfile: React.FC = () => {
+  const { supabaseClient, notify } = useOrganisationContext();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -68,7 +68,7 @@ const OrganisationProfile: React.FC = () => {
       setLoading(true);
       
       // Fetch organisation profile data
-      const { data: orgProfile, error: orgError } = await supabase
+      const { data: orgProfile, error: orgError } = await supabaseClient
         .from('org_profile')
         .select('*')
         .maybeSingle();
@@ -82,7 +82,7 @@ const OrganisationProfile: React.FC = () => {
       }
 
       // Fetch signatory roles data
-      const { data: sigRoles, error: sigError } = await supabase
+      const { data: sigRoles, error: sigError } = await supabaseClient
         .from('org_sig_roles')
         .select('*');
 
@@ -134,7 +134,7 @@ const OrganisationProfile: React.FC = () => {
 
     } catch (error) {
       console.error('Error fetching organisation data:', error);
-      toast.error('Failed to load organisation data');
+      notify('error', 'Failed to load organisation data', '');
     } finally {
       setLoading(false);
     }
@@ -145,7 +145,7 @@ const OrganisationProfile: React.FC = () => {
       setSaving(true);
       
       // Save organisation profile data
-      const { error: orgError } = await supabase
+      const { error: orgError } = await supabaseClient
         .from('org_profile')
         .upsert(organisationData);
 
@@ -163,18 +163,18 @@ const OrganisationProfile: React.FC = () => {
       ];
 
       for (const update of updates) {
-        const { error: sigError } = await supabase
+        const { error: sigError } = await supabaseClient
           .from('org_sig_roles')
           .upsert(update, { onConflict: 'role_type' });
 
         if (sigError) throw sigError;
       }
 
-      toast.success('Organisation profile updated successfully');
+      notify('success', 'Organisation profile updated successfully', '');
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving organisation data:', error);
-      toast.error('Failed to save organisation data');
+      notify('error', 'Failed to save organisation data', '');
     } finally {
       setSaving(false);
     }
@@ -183,7 +183,7 @@ const OrganisationProfile: React.FC = () => {
   const fetchUserEmailAndRole = async (userId: string) => {
     try {
       // Get email using the database function
-      const { data: emailData, error: emailError } = await supabase
+      const { data: emailData, error: emailError } = await supabaseClient
         .rpc('get_user_email_by_id', { user_id: userId });
       
       if (emailError) {
@@ -192,7 +192,7 @@ const OrganisationProfile: React.FC = () => {
       }
       
       // Get primary role from user_profile_roles + roles
-      const { data: roleData, error: roleError } = await supabase
+      const { data: roleData, error: roleError } = await supabaseClient
         .from('user_profile_roles')
         .select(`
           roles(name)
@@ -208,7 +208,7 @@ const OrganisationProfile: React.FC = () => {
       
       return {
         email: emailData || '',
-        title: roleData?.roles?.name || ''
+        title: (roleData?.roles as any)?.name || ''
       };
       
     } catch (error) {
