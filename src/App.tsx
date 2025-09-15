@@ -24,7 +24,7 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { user, loading } = useAuth();
-  const { hasPermission, loading: roleLoading } = useUserRole();
+  const { isAdmin, loading: roleLoading } = useUserRole();
   const [currentView, setCurrentView] = useState<'dashboard' | 'persona' | 'admin' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management'>('dashboard');
 
   if (loading || roleLoading) {
@@ -39,8 +39,8 @@ const AppContent = () => {
     return <AuthPage />;
   }
 
-  // For users without moderator+ permissions, show only their own profile
-  if (!hasPermission('moderator')) {
+  // For users without admin permissions, show only their own profile
+  if (!isAdmin) {
     return (
       <BrowserRouter>
         <div className="min-h-screen bg-gray-50">

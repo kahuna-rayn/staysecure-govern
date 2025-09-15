@@ -25,6 +25,8 @@ export const useUserDepartments = (userId?: string) => {
     
     try {
       setIsLoading(true);
+      console.log('useUserDepartments: Fetching departments for user:', userId);
+      
       const { data, error } = await supabase
         .from('user_departments')
         .select(`
@@ -39,6 +41,9 @@ export const useUserDepartments = (userId?: string) => {
         `)
         .eq('user_id', userId);
 
+      console.log('useUserDepartments: Raw departments data:', data);
+      console.log('useUserDepartments: Departments query error:', error);
+
       if (error) throw error;
 
       const formattedData = data?.map(item => ({
@@ -52,30 +57,39 @@ export const useUserDepartments = (userId?: string) => {
         pairing_id: item.pairing_id || ''
       })) || [];
 
+      console.log('useUserDepartments: Formatted departments data:', formattedData);
       setUserDepartments(formattedData);
     } catch (err) {
+      console.error('useUserDepartments: Error fetching departments:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Accept object with userId, departmentId, isPrimary
-  const addDepartment = async (params: { userId: string; departmentId: string; isPrimary: boolean; pairingId?: string }) => {
+  // Accept object with userId, departmentId, isPrimary, assignedBy
+  const addDepartment = async (params: { userId: string; departmentId: string; isPrimary: boolean; pairingId?: string; assignedBy?: string }) => {
     try {
       setIsAddingDepartment(true);
+      console.log('useUserDepartments: addDepartment called with params:', params);
+      
       const { error } = await supabase
         .from('user_departments')
         .insert([{
           user_id: params.userId,
           department_id: params.departmentId,
           is_primary: params.isPrimary,
-          pairing_id: params.pairingId
+          pairing_id: params.pairingId,
+          assigned_by: params.assignedBy
         }]);
 
+      console.log('useUserDepartments: addDepartment insert error:', error);
       if (error) throw error;
+      
+      console.log('useUserDepartments: Department added successfully, refetching...');
       await fetchUserDepartments();
     } catch (err) {
+      console.error('useUserDepartments: addDepartment error:', err);
       setError(err instanceof Error ? err.message : 'Failed to add department');
     } finally {
       setIsAddingDepartment(false);

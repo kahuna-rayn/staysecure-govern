@@ -6,6 +6,8 @@ import type { User } from '@supabase/supabase-js';
 export interface UserProfile {
   id: string;
   full_name: string;
+  first_name?: string;
+  last_name?: string;
   username: string;
   email: string;
   role: string;
@@ -13,6 +15,7 @@ export interface UserProfile {
   manager: string;
   phone: string;
   location: string;
+  location_id?: string;
   employee_id: string;
   access_level: string;
   status: string;
@@ -76,6 +79,8 @@ export const useUserProfiles = () => {
       const formattedProfiles: UserProfile[] = (profilesData || []).map((profile: any) => ({
         id: profile.id,
         full_name: profile.full_name || '',
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
         username: profile.username || '',
         // Try to get email from account inventory first, then from auth, then fall back to 'Not available'
         email: emailMap.get(profile.full_name) || authEmailMap.get(profile.id) || 'Not available',
@@ -84,6 +89,7 @@ export const useUserProfiles = () => {
         manager: profile.manager || '',
         phone: profile.phone || '',
         location: profile.location || '',
+        location_id: profile.location_id || '',
         employee_id: profile.employee_id || '',
         access_level: profile.access_level || '',
         status: profile.status || '',
@@ -113,21 +119,37 @@ export const useUserProfiles = () => {
   };
 
   const updateProfile = async (profileId: string, updates: Partial<UserProfile>) => {
+    console.log('🔍 updateProfile - called with profileId:', profileId);
+    console.log('🔍 updateProfile - updates object:', updates);
+    console.log('🔍 updateProfile - updates.location_id:', updates.location_id);
+    console.log('🔍 updateProfile - updates.location:', updates.location);
+    
     try {
-      const { error } = await supabase
+      console.log('🔍 updateProfile - calling Supabase update...');
+      const { data, error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', profileId);
+        .eq('id', profileId)
+        .select();
 
-      if (error) throw error;
+      console.log('🔍 updateProfile - Supabase response:', { data, error });
+      
+      if (error) {
+        console.error('❌ updateProfile - Supabase error:', error);
+        throw error;
+      }
 
+      console.log('🔍 updateProfile - Update successful, updating local state...');
+      
       // Update local state
       setProfiles(prev => prev.map(profile => 
         profile.id === profileId ? { ...profile, ...updates } : profile
       ));
+      
+      console.log('🔍 updateProfile - Local state updated, returning success');
       return { success: true };
     } catch (err) {
-      console.error('Error updating profile:', err);
+      console.error('❌ updateProfile - Error:', err);
       return { 
         success: false, 
         error: err instanceof Error ? err.message : 'Failed to update profile' 
@@ -161,8 +183,9 @@ export const useUserProfiles = () => {
         manager: data.manager || '',
         phone: data.phone || '',
         location: data.location || '',
+        location_id: (data as any).location_id || '',
         employee_id: data.employee_id || '',
-        access_level: data.access_level || '',
+        access_level: '', // Remove this line as access_level doesn't exist in profiles table
         status: data.status || '',
         start_date: data.start_date || '',
         last_login: data.last_login || '',

@@ -7,6 +7,8 @@ export interface Profile {
   id: string;
   username?: string;
   full_name?: string;
+  first_name?: string;
+  last_name?: string;
   avatar_url?: string;
   bio?: string;
   role?: string;
@@ -21,6 +23,8 @@ export interface Profile {
   password_last_changed?: string;
   two_factor_enabled?: boolean;
   status?: string;
+  language?: string;
+  email?: string;
   created_at: string;
   updated_at: string;
 }
@@ -46,16 +50,39 @@ export const useProfile = (profileId?: string) => {
     console.log('fetchProfile called with id:', id);
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, username, avatar_url, bio, manager, phone, location, start_date, employee_id, access_level, last_login, password_last_changed, two_factor_enabled, status, created_at, updated_at')
+        .select('id, full_name, first_name, last_name, username, avatar_url, bio, manager, phone, location, start_date, employee_id, last_login, password_last_changed, two_factor_enabled, status, language, created_at, updated_at')
         .eq('id', id)
         .single();
 
-      console.log('Fresh profile data from Supabase:', data);
+      if (profileError) throw profileError;
 
-      if (error) throw error;
-      setProfile(data);
+      // Fetch role from user_roles
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', id)
+        .maybeSingle();
+
+      if (roleError) {
+        console.warn('Error fetching user role:', roleError);
+      }
+
+      // Get email from auth user
+      const userEmail = user?.email || null;
+
+      // Combine profile data with role and email
+      const combinedData = {
+        ...profileData,
+        role: roleData?.role || null,
+        email: userEmail
+      };
+
+      console.log('Fresh profile data from Supabase:', combinedData);
+      setProfile(combinedData);
     } catch (error: any) {
       setError(error.message);
     } finally {

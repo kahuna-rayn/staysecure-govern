@@ -2,18 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
 
-type AppRole = 'super_admin' | 'client_admin' | 'moderator' | 'user';
-
-const ROLE_HIERARCHY: Record<AppRole, number> = {
-  super_admin: 4,
-  client_admin: 3,
-  moderator: 2,
-  user: 1,
-};
-
 export const useUserRole = () => {
   const { user } = useAuth();
-  const [role, setRole] = useState<AppRole | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,10 +23,10 @@ export const useUserRole = () => {
         .from('user_roles')
         .select('role')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
-      setRole(data?.role as AppRole || null);
+      if (error) throw error;
+      setRole(data?.role || null);
     } catch (error) {
       console.error('Error fetching user role:', error);
       setRole(null);
@@ -44,44 +35,76 @@ export const useUserRole = () => {
     }
   };
 
-  // Role hierarchy checking
-  const hasPermission = (requiredRole: AppRole): boolean => {
-    if (!role) return false;
-    return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY[requiredRole];
-  };
-
-  // Role assignment restrictions
-  const canAssignRole = (targetRole: AppRole): boolean => {
-    if (!role) return false;
-    
-    // super_admin can assign any role
-    if (role === 'super_admin') return true;
-    
-    // client_admin can assign client_admin, moderator, and user (not super_admin)
-    if (role === 'client_admin') {
-      return ['client_admin', 'moderator', 'user'].includes(targetRole);
-    }
-    
-    return false;
-  };
-
-  // Legacy compatibility and specific role checks
+  // Helper functions for role checking
+  const isAdmin = role === 'admin' || role === 'super_admin' || role === 'client_admin'; // Legacy compatibility
   const isSuperAdmin = role === 'super_admin';
-  const isClientAdmin = role === 'client_admin';
-  const isAdmin = role === 'super_admin' || role === 'client_admin'; // For backward compatibility
+  const isClientAdmin = role === 'client_admin'; // Support existing client_admin users
   const isModerator = role === 'moderator';
-  const isUser = role === 'user';
+  
+  // Check if user has any admin privileges
+  const hasAdminAccess = isSuperAdmin || isClientAdmin;
+
+  // Permission checks for different features
+  const canAccessLessons = isSuperAdmin;
+  const canAccessLearningTracks = isSuperAdmin;
+  const canAccessTranslation = isSuperAdmin;
+  const canAccessAssignments = hasAdminAccess;
+  const canAccessAnalytics = hasAdminAccess;
+  const canAccessReports = hasAdminAccess;
+  const canAccessOrganisation = hasAdminAccess;
+  const canAccessNotifications = hasAdminAccess;
+  const canAccessTemplates = hasAdminAccess;
+  const canAccessAnyAdminFeature = hasAdminAccess;
+
+  // Get display name for role
+  const getRoleDisplayName = () => {
+    switch (role) {
+      case 'super_admin':
+        return 'Super Administrator';
+      case 'client_admin':
+        return 'Client Administrator';
+      case 'moderator':
+        return 'Moderator';
+      case 'user':
+        return 'User';
+      default:
+        return 'User';
+    }
+  };
+
+  // Get role badge variant
+  const getRoleBadgeVariant = () => {
+    switch (role) {
+      case 'super_admin':
+      case 'client_admin':
+        return 'destructive'; // Red color to stand out
+      case 'moderator':
+        return 'outline';
+      default:
+        return 'outline';
+    }
+  };
 
   return {
     role,
+    isAdmin,
     isSuperAdmin,
     isClientAdmin,
-    isAdmin, // Legacy - includes both super_admin and client_admin
     isModerator,
-    isUser,
-    hasPermission,
-    canAssignRole,
+    hasAdminAccess,
+    canAccessLessons,
+    canAccessLearningTracks,
+    canAccessTranslation,
+    canAccessAssignments,
+    canAccessAnalytics,
+    canAccessReports,
+    canAccessOrganisation,
+    canAccessNotifications,
+    canAccessTemplates,
+    canAccessAnyAdminFeature,
     loading,
     refetch: fetchUserRole,
+    getRoleDisplayName,
+    getRoleBadgeVariant,
   };
 };
