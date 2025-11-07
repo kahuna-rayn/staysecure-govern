@@ -6,11 +6,21 @@ import { useUserAssets } from "@/hooks/useUserAssets";
 import EditableField from "./EditableField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PersonProfile } from "./PersonaProfile";
 import { toast } from "@/hooks/use-toast";
+import { Profile } from '@/hooks/useProfile';
+
+interface SoftwareItem {
+  id: string;
+  name: string;
+  role_account_type: string;
+  expiryDate: string | null;
+  lastUsed: string | null;
+}
 
 interface SoftwareAccountsProps {
-  profile: PersonProfile;
+  profile: Profile & {
+    software: SoftwareItem[];
+  };
 }
 
 const SoftwareAccounts: React.FC<SoftwareAccountsProps> = ({ profile }) => {
