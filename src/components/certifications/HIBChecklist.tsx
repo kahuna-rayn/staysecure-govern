@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from 'staysecure-auth';
 import HIBChecklistTable from './HIBChecklistTable';
 import HIBImportSection from './HIBImportSection';
 import HIBActionButtons from './HIBActionButtons';

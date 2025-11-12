@@ -115,7 +115,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
       // Transform data to include colors and rename score field
       return (data || []).map((item: any) => ({
         domain: item.domain,
-        score: item.domain_avg,
+        score: Math.round((item.domain_avg || 0) * 10) / 10, // Round to 1 decimal place
         color: '#3b82f6'
       }));
     },
@@ -285,8 +285,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
   const protectionScore = Math.round((85 * 0.4) + (50 * 0.3) + (50 * 0.3)); // Compliance % (85%)*40% + Updated Account Inventory (50%)*30% + Updated Hardware Inventory (50%)*30%
   const readinessScore = calculateWeightedReadinessScore();
   
-  // Calculate overall score using weighted formula: Education (40%), Protection (35%), Readiness (25%)
-  const overallScore = Math.round(educationScore * 0.4 + protectionScore * 0.35 + readinessScore * 0.25);
+  // Calculate overall score using weighted formula: Education (40%), Protection (45%), Readiness (15%)
+  const overallScore = Math.round(educationScore * 0.40 + protectionScore * 0.45 + readinessScore * 0.15);
 
   // Education metrics
   const educationMetrics = [
@@ -684,14 +684,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                         label={{ value: 'Average Score', angle: -90, position: 'center', fontSize: 10 }}
                       />
                       <Tooltip 
-                        formatter={(value: any) => [`${value}`, 'Score']}
+                        formatter={(value: any) => [`${Number(value).toFixed(1)}`, 'Score']}
                         labelFormatter={(label: string) => `Domain: ${label}`}
                       />
                       <Bar dataKey="score" fill="#3b82f6" radius={[4, 4, 0, 0]}>
                         {cybersecurityAssessmentData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill="#3b82f6" />
                         ))}
-                        <LabelList dataKey="score" position="top" style={{ fontSize: '10px', fill: '#374151' }} />
+                        <LabelList 
+                          dataKey="score" 
+                          position="top" 
+                          style={{ fontSize: '10px', fill: '#374151' }}
+                          formatter={(value: any) => Number(value).toFixed(1)}
+                        />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>

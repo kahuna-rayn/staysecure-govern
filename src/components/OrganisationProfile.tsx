@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Edit, Save, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import SearchableProfileField from './SearchableProfileField';
+import SearchableProfileField from '@/modules/organisation/components/SearchableProfileField';
 
 interface OrganisationData {
   id?: string;

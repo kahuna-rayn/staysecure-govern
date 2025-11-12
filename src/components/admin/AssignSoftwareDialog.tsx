@@ -24,12 +24,13 @@ const AssignSoftwareDialog: React.FC<AssignSoftwareDialogProps> = ({
   userId,
   onSuccess,
 }) => {
+  // All hooks must be called in the same order every render
   const [loading, setLoading] = useState(false);
   const [selectedSoftwareId, setSelectedSoftwareId] = useState('');
   const [roleAccountType, setRoleAccountType] = useState('');
   
   const { softwareInventory } = useInventory();
-  const { addSoftware } = useUserAssets();
+  const { addSoftware } = useUserAssets(userId); // Pass userId to ensure consistent hook calls
 
   // Get active software items
   const availableSoftware = softwareInventory.filter(item => 
@@ -38,19 +39,19 @@ const AssignSoftwareDialog: React.FC<AssignSoftwareDialogProps> = ({
 
   const selectedSoftwareItem = softwareInventory.find(item => item.id === selectedSoftwareId);
 
-  // Query to get user profile by user ID with better error handling
+  // Always call useQuery - hooks must be called in same order every render
+  // The 'enabled' flag only controls query execution, not hook calls
   const { data: userProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['user-profile-by-id', userId],
     queryFn: async () => {
-      console.log('Querying profile for userId:', userId);
-      
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, username')
         .eq('id', userId)
         .single();
-      
-      console.log('Profile query result:', { data, error });
       
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -58,7 +59,7 @@ const AssignSoftwareDialog: React.FC<AssignSoftwareDialogProps> = ({
       }
       return data;
     },
-    enabled: !!userId && isOpen,
+    enabled: !!userId && isOpen, // Only run query when userId exists and dialog is open
   });
 
   console.log('AssignSoftwareDialog - userId:', userId);

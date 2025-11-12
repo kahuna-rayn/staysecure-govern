@@ -63,21 +63,17 @@ export interface AccountInventoryItem {
 
 export const useInventory = () => {
   const { user } = useAuth();
+  
   const [hardwareInventory, setHardwareInventory] = useState<HardwareInventoryItem[]>([]);
   const [softwareInventory, setSoftwareInventory] = useState<SoftwareInventoryItem[]>([]);
   const [accountInventory, setAccountInventory] = useState<AccountInventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      fetchInventory();
-    }
-  }, [user]);
-
   const fetchInventory = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       const [hardwareRes, softwareRes, accountRes] = await Promise.all([
         supabase.from('hardware_inventory').select('*').order('created_at', { ascending: false }),
@@ -85,19 +81,43 @@ export const useInventory = () => {
         supabase.from('account_inventory').select('*').order('created_at', { ascending: false })
       ]);
 
-      if (hardwareRes.error) throw hardwareRes.error;
-      if (softwareRes.error) throw softwareRes.error;
-      if (accountRes.error) throw accountRes.error;
+      if (hardwareRes.error) {
+        console.error('Hardware inventory error:', hardwareRes.error);
+        throw hardwareRes.error;
+      }
+      if (softwareRes.error) {
+        console.error('Software inventory error:', softwareRes.error);
+        throw softwareRes.error;
+      }
+      if (accountRes.error) {
+        console.error('Account inventory error:', accountRes.error);
+        throw accountRes.error;
+      }
 
       setHardwareInventory(hardwareRes.data || []);
       setSoftwareInventory(softwareRes.data || []);
       setAccountInventory(accountRes.data || []);
     } catch (error: any) {
-      setError(error.message);
+      console.error('Inventory fetch error:', error);
+      setError(error.message || 'Failed to load inventory');
     } finally {
       setLoading(false);
     }
   };
+
+  // Always call useEffect - hooks must be called in the same order
+  useEffect(() => {
+    if (user) {
+      fetchInventory();
+    } else {
+      setLoading(false);
+      // Clear inventory when user logs out
+      setHardwareInventory([]);
+      setSoftwareInventory([]);
+      setAccountInventory([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const addHardwareItem = async (item: Omit<HardwareInventoryItem, 'id' | 'created_at' | 'updated_at'>) => {
     try {

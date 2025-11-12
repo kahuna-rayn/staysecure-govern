@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from 'staysecure-auth';
 import { UserAnswerResponse, UserBehaviorAnalytics, LessonSession } from '@/types/flowchart';
 import { LessonAnswer } from '@/types/lesson';
 

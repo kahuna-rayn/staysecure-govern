@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, CheckCircle, XCircle, Loader2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from 'staysecure-auth';
 import { toast } from '@/components/ui/use-toast';
 
 interface HIBResultsClause {

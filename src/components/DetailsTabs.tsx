@@ -1,13 +1,13 @@
 
 import React from "react";
-import { PersonProfile } from "./PersonaProfile";
+import { PersonProfile } from "@/modules/organisation/components/PersonaProfile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import AccountDetails from "./AccountDetails";
 import HardwareInventory from "./HardwareInventory";
 import SoftwareAccounts from "./SoftwareAccounts";
-import Certificates from "./Certificates";
-import PhysicalLocationTab from "./PhysicalLocationTab";
+import Certificates from "@/modules/organisation/components/Certificates";
+import PhysicalLocationTab from "@/modules/organisation/components/PhysicalLocationTab";
 import { UserRound, Laptop, MonitorSmartphone, GraduationCap, MapPin } from "lucide-react";
 
 interface DetailsTabsProps {

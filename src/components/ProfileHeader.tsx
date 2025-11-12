@@ -1,5 +1,5 @@
 import React from "react";
-import { PersonProfile } from "./PersonaProfile";
+import { PersonProfile } from "@/modules/organisation/components/PersonaProfile";
 import { Mail, Phone, MapPin, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";

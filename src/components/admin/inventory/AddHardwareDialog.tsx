@@ -109,7 +109,7 @@ const AddHardwareDialog: React.FC<AddHardwareDialogProps> = ({
                 id="device_name"
                 value={formData.device_name}
                 onChange={(e) => setFormData({ ...formData, device_name: e.target.value })}
-                placeholder="e.g., John's Laptop"
+                placeholder="e.g., FIN-LP-7092"
                 required
               />
             </div>

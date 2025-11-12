@@ -2,11 +2,12 @@ import React from 'react';
 import { useInventory } from '@/hooks/useInventory';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
 import HardwareTable from './HardwareTable';
 import type { HardwareInventoryItem } from '@/hooks/useInventory';
 
 const HardwareInventoryList: React.FC = () => {
-  const { hardwareInventory, loading, refetch } = useInventory();
+  const { hardwareInventory, loading, error, refetch } = useInventory();
 
   const updateHardwareItem = async (id: string, updates: Partial<HardwareInventoryItem>) => {
     try {
@@ -85,6 +86,28 @@ const HardwareInventoryList: React.FC = () => {
 
   if (loading) {
     return <div>Loading hardware inventory...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 border border-red-200 rounded-md bg-red-50">
+        <p className="text-red-800">Error loading hardware inventory: {error}</p>
+        <Button onClick={() => refetch()} className="mt-2" variant="outline">
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (hardwareInventory.length === 0) {
+    return (
+      <div className="p-4 border border-yellow-200 rounded-md bg-yellow-50">
+        <p className="text-yellow-800">No hardware inventory items found.</p>
+        <Button onClick={() => refetch()} className="mt-2" variant="outline">
+          Retry
+        </Button>
+      </div>
+    );
   }
 
   return (

@@ -23,6 +23,7 @@ const AssignHardwareDialog: React.FC<AssignHardwareDialogProps> = ({
   userId,
   onSuccess,
 }) => {
+  // All hooks must be called in the same order every render
   const [loading, setLoading] = useState(false);
   const [selectedHardwareId, setSelectedHardwareId] = useState('');
   const { hardwareInventory, refetch } = useInventory();
@@ -42,9 +43,14 @@ const AssignHardwareDialog: React.FC<AssignHardwareDialogProps> = ({
     hardwareInventory.find(item => item.id === selectedHardwareId) : 
     null;
 
+  // Always call useQuery - hooks must be called in same order every render
+  // The 'enabled' flag only controls query execution, not hook calls
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile-by-id', userId],
     queryFn: async () => {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
       const { data, error } = await supabase
         .from('profiles')
         .select('full_name, username')
@@ -54,6 +60,7 @@ const AssignHardwareDialog: React.FC<AssignHardwareDialogProps> = ({
       if (error) throw error;
       return data;
     },
+    enabled: !!userId && isOpen, // Only run query when userId exists and dialog is open
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

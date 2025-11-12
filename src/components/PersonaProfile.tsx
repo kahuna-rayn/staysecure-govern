@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from 'staysecure-auth';
 import { useProfile } from "@/hooks/useProfile";
 import { useUserAssets } from "@/hooks/useUserAssets";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import EditableProfileHeader from "./EditableProfileHeader";
-import PersonaDetailsTabs from "./PersonaDetailsTabs";
+import EditableProfileHeader from "@/modules/organisation/components/EditableProfileHeader";
+import PersonaDetailsTabs from "@/modules/organisation/components/PersonaDetailsTabs";
 
 // Define PersonProfile interface to replace the one from deleted mockData.ts
 export interface PersonProfile {
