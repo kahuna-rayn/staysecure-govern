@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { DatabaseSelectCell } from './DatabaseSelectCell';
 import { MultiDepartmentSelectCell } from './MultiDepartmentSelectCell';
-import { DepartmentRolePairsDisplay } from '@/components/admin/DepartmentRolePairsDisplay';
+import { DepartmentRolePairsDisplay } from '@/modules/organisation/components/DepartmentRolePairsDisplay';
 import { DatabaseDisplayCell } from './DatabaseDisplayCell';
 
 interface ColumnConfig {

@@ -126,15 +126,168 @@ const CompliancePanel: React.FC = () => {
     fetchPeriodicReviews();
   }, []);
 
+  // Calculate due date based on frequency and activity name
+  // TODO: This is a temporary implementation for demo purposes.
+  // The correct implementation should calculate dates based on organization certification dates.
+  // See docs/KEY_DATES_DUE_DATE_CALCULATION.md for details.
+  const calculateDueDate = (item: KeyDate): string | null => {
+    // If there's an updated_due_date, use that
+    if (item.updated_due_date) {
+      return item.updated_due_date;
+    }
+
+    // If there's already a due_date, use that
+    if (item.due_date) {
+      return item.due_date;
+    }
+
+    // Calculate based on frequency
+    const frequency = item.frequency?.toLowerCase() || '';
+    const activityName = item.key_activity || '';
+    const currentYear = new Date().getFullYear();
+    const currentDate = new Date();
+
+    // Extract quarter from activity name (e.g., "Q1", "Q2", "Q3", "Q4")
+    const quarterMatch = activityName.match(/\bQ([1-4])\b/i);
+    
+    if (quarterMatch) {
+      const quarter = parseInt(quarterMatch[1]);
+      const currentMonth = currentDate.getMonth(); // 0-11 (Jan = 0, Dec = 11)
+      const currentQuarter = Math.floor(currentMonth / 3) + 1; // 1-4
+      
+      let dueDate: Date;
+      let targetYear = currentYear;
+
+      switch (quarter) {
+        case 1:
+          dueDate = new Date(targetYear, 2, 31); // March 31
+          break;
+        case 2:
+          dueDate = new Date(targetYear, 5, 30); // June 30
+          break;
+        case 3:
+          dueDate = new Date(targetYear, 8, 30); // September 30
+          break;
+        case 4:
+          dueDate = new Date(targetYear, 11, 31); // December 31
+          break;
+        default:
+          return null;
+      }
+
+      // If the quarter has passed this year, use next year
+      // Also, if we're in a later quarter, earlier quarters should be next year
+      if (quarter < currentQuarter || (quarter === currentQuarter && dueDate < currentDate)) {
+        dueDate = new Date(currentYear + 1, dueDate.getMonth(), dueDate.getDate());
+      }
+
+      return dueDate.toISOString().split('T')[0];
+    }
+
+    // Handle semi-annual frequency
+    if (frequency.includes('semi-annual') || frequency.includes('semi-annually') || frequency.includes('semiannual')) {
+      // Semi-annual: twice a year - typically June 30 and December 31
+      // Check if activity name indicates H1 (first half) or H2 (second half)
+      const halfMatch = activityName.match(/\bH([12])\b/i);
+      
+      if (halfMatch) {
+        const half = parseInt(halfMatch[1]);
+        let dueDate: Date;
+        
+        if (half === 1) {
+          // First half: June 30
+          dueDate = new Date(currentYear, 5, 30); // June 30
+        } else {
+          // Second half: December 31
+          dueDate = new Date(currentYear, 11, 31); // December 31
+        }
+        
+        // If the half-year has passed, use next year
+        if (dueDate < currentDate) {
+          dueDate = new Date(currentYear + 1, dueDate.getMonth(), dueDate.getDate());
+        }
+        
+        return dueDate.toISOString().split('T')[0];
+      } else {
+        // No H1/H2 indicator - determine based on current date
+        const currentMonth = currentDate.getMonth();
+        const june30 = new Date(currentYear, 5, 30); // June 30
+        const dec31 = new Date(currentYear, 11, 31); // December 31
+        
+        // If we're past June 30, next due date is December 31
+        // If we're past December 31, next due date is June 30 of next year
+        if (currentDate > dec31) {
+          return new Date(currentYear + 1, 5, 30).toISOString().split('T')[0];
+        } else if (currentDate > june30) {
+          return dec31.toISOString().split('T')[0];
+        } else {
+          return june30.toISOString().split('T')[0];
+        }
+      }
+    }
+
+    // Handle other frequencies
+    if (frequency.includes('monthly')) {
+      // Monthly: end of current month, or next month if we're past the 15th
+      const day = currentDate.getDate();
+      const month = day > 15 ? currentDate.getMonth() + 1 : currentDate.getMonth();
+      const year = month > 11 ? currentYear + 1 : currentYear;
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      return new Date(year, month, lastDay).toISOString().split('T')[0];
+    }
+
+    if (frequency.includes('annually') || frequency.includes('yearly') || frequency.includes('annual')) {
+      // Annually: end of current year
+      // If we're past the end of the year, use next year
+      const yearEnd = new Date(currentYear, 11, 31);
+      if (currentDate > yearEnd) {
+        return new Date(currentYear + 1, 11, 31).toISOString().split('T')[0];
+      }
+      return yearEnd.toISOString().split('T')[0];
+    }
+
+    if (frequency.includes('weekly')) {
+      // Weekly: end of current week (Sunday)
+      const dayOfWeek = currentDate.getDay();
+      const daysUntilSunday = 7 - dayOfWeek;
+      const dueDate = new Date(currentDate);
+      dueDate.setDate(currentDate.getDate() + daysUntilSunday);
+      return dueDate.toISOString().split('T')[0];
+    }
+
+    if (frequency.includes('daily')) {
+      // Daily: today
+      return currentDate.toISOString().split('T')[0];
+    }
+
+    return null;
+  };
+
   const filteredKeyDates = useMemo(() => {
-    return keyDates.filter((item) => {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        (item.key_activity?.toLowerCase().includes(searchLower) ?? false) ||
-        (item.certificate?.toLowerCase().includes(searchLower) ?? false) ||
-        (item.frequency?.toLowerCase().includes(searchLower) ?? false)
-      );
-    });
+    return keyDates
+      .map((item) => {
+        // Calculate due_date if it's missing
+        const calculatedDueDate = item.due_date || calculateDueDate(item);
+        // Format for display - EditableTable will use this value for display
+        const formattedDueDate = calculatedDueDate 
+          ? format(new Date(calculatedDueDate), 'MMM dd, yyyy')
+          : '';
+        
+        return {
+          ...item,
+          // Store original date for updates, but display formatted version
+          due_date: formattedDueDate || calculatedDueDate,
+          _original_due_date: calculatedDueDate, // Keep original for saving
+        };
+      })
+      .filter((item) => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          (item.key_activity?.toLowerCase().includes(searchLower) ?? false) ||
+          (item.certificate?.toLowerCase().includes(searchLower) ?? false) ||
+          (item.frequency?.toLowerCase().includes(searchLower) ?? false)
+        );
+      });
   }, [keyDates, searchTerm]);
 
   const filteredPeriodicReviews = useMemo(() => {
@@ -255,6 +408,7 @@ const CompliancePanel: React.FC = () => {
       type: 'text' as const,
       editable: false,
       sortable: true,
+      width: '15%', // Reduced from default to make room for Due Date
     },
     {
       key: 'due_date' as keyof KeyDate,
@@ -262,6 +416,7 @@ const CompliancePanel: React.FC = () => {
       type: 'date' as const,
       editable: false,
       sortable: true,
+      width: '20%', // Increased width so dates display on one line
     },
     {
       key: 'updated_due_date' as keyof KeyDate,
@@ -269,6 +424,7 @@ const CompliancePanel: React.FC = () => {
       type: 'date' as const,
       editable: true,
       sortable: true,
+      width: '20%',
     },
   ];
 

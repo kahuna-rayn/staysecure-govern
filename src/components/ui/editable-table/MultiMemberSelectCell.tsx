@@ -49,7 +49,7 @@ export function MultiMemberSelectCell({ breachTeamId, onUpdate }: MultiMemberSel
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   
   // DBIM Team department ID (hardcoded as per requirements)
-  const DBIM_TEAM_DEPT_ID = '963abe4e-0345-41d1-bbc1-b42585c70211';
+  const DBIM_TEAM_DEPT_ID = 'ef91c1ef-d0ba-4e3c-809c-4e9e9326be6a';
 
   useEffect(() => {
     fetchData();
@@ -148,7 +148,7 @@ export function MultiMemberSelectCell({ breachTeamId, onUpdate }: MultiMemberSel
           breach_team_id: breachTeamId,
           user_id: selectedUserId,
           role_id: assignedRoleId,
-          department_id: DBIM_TEAM_DEPT_ID, // Always DBIM Team
+          department_id: DBIM_TEAM_DEPT_ID, // DBIM Team department
           is_primary: false,
           assigned_by: (await supabase.auth.getUser()).data.user?.id,
           is_system: true // Mark as system-managed

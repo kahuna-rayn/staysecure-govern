@@ -63,8 +63,15 @@ export const useUserAssets = (userId?: string) => {
       
       const userName = profileQuery.data?.full_name || profileQuery.data?.username || '';
       
-      // Query hardware_inventory for items assigned to this user
+      // Query hardware table for items assigned to this user by user_id
       const hardwareQuery = await supabase
+        .from('hardware')
+        .select('id, type, model, serial_number, status, assigned_date, manufacturer, os_edition, os_version')
+        .eq('user_id', actualUserId)
+        .order('assigned_date', { ascending: false });
+      
+      // Also query hardware_inventory for items assigned by name (fallback)
+      const hardwareInventoryQuery = await supabase
         .from('hardware_inventory')
         .select('id, asset_type, device_name, serial_number, status, created_at, manufacturer, model, os_edition, os_version, asset_owner')
         .eq('asset_owner', userName)
@@ -97,11 +104,25 @@ export const useUserAssets = (userId?: string) => {
         .order('created_at', { ascending: false });
 
       if (hardwareQuery.error) throw hardwareQuery.error;
+      if (hardwareInventoryQuery.error) console.warn('Hardware inventory query error:', hardwareInventoryQuery.error);
       if (finalSoftwareError) console.warn('Software query error:', finalSoftwareError);
       if (certificatesQuery.error) throw certificatesQuery.error;
 
-      // Transform hardware data
-      const transformedHardware = (hardwareQuery.data || []).map(item => ({
+      // Transform hardware data from hardware table
+      const hardwareFromTable = (hardwareQuery.data || []).map(item => ({
+        id: item.id,
+        type: item.type || 'Unknown',
+        model: item.model || 'Unknown Model',
+        serial_number: item.serial_number,
+        status: item.status || 'Active',
+        assigned_date: item.assigned_date,
+        manufacturer: item.manufacturer,
+        os_edition: item.os_edition,
+        os_version: item.os_version,
+      }));
+
+      // Transform hardware data from hardware_inventory table
+      const hardwareFromInventory = (hardwareInventoryQuery.data || []).map(item => ({
         id: item.id,
         type: item.asset_type,
         model: item.model || item.device_name || 'Unknown Model',
@@ -112,6 +133,12 @@ export const useUserAssets = (userId?: string) => {
         os_edition: item.os_edition,
         os_version: item.os_version,
       }));
+
+      // Combine both sources, removing duplicates by serial_number
+      const allHardware = [...hardwareFromTable, ...hardwareFromInventory];
+      const uniqueHardware = allHardware.filter((item, index, self) => 
+        index === self.findIndex(h => h.serial_number === item.serial_number)
+      );
 
       // Transform software data - ensure it's an array
       const transformedSoftware = Array.isArray(finalSoftwareData) 
@@ -124,7 +151,7 @@ export const useUserAssets = (userId?: string) => {
           }))
         : [];
 
-      setHardware(transformedHardware);
+      setHardware(uniqueHardware);
       setSoftware(transformedSoftware);
       setCertificates(certificatesQuery.data || []);
     } catch (error: any) {

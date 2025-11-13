@@ -50,7 +50,7 @@ export const useUserProfiles = () => {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('full_name', { ascending: true });
 
       if (profilesError) throw profilesError;
 

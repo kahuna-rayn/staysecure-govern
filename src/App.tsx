@@ -16,7 +16,7 @@ import Dashboard from "@/components/Dashboard";
 import KnowledgePanel from "@/components/KnowledgePanel";
 import CompliancePanel from "@/components/CompliancePanel";
 import BreachManagementPanel from "@/components/BreachManagementPanel";
-import UserDetailView from "@/components/admin/UserDetailView";
+import UserDetailView from "@/modules/organisation/components/admin/UserDetailView";
 import NotFound from "./pages/NotFound";
 import { useState, useEffect } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
