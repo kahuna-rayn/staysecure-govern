@@ -4,7 +4,8 @@ import { useAuth } from 'staysecure-auth';
 
 export interface HardwareInventoryItem {
   id: string;
-  asset_owner?: string;
+  user_id?: string; // UUID foreign key to profiles table
+  asset_owner?: string; // User's full name (kept for backward compatibility)
   device_name?: string;
   serial_number: string;
   asset_type: string;
@@ -12,6 +13,7 @@ export interface HardwareInventoryItem {
   owner?: string;
   asset_classification?: string;
   end_of_support_date?: string;
+  manufacturer?: string;
   os_edition?: string;
   os_version?: string;
   approval_status: string;

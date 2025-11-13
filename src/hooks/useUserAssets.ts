@@ -52,29 +52,11 @@ export const useUserAssets = (userId?: string) => {
       // Dynamic import to avoid type recursion
       const { supabase } = await import('@/integrations/supabase/client');
       
-      let actualUserId = userId;
-      
-      // Get user profile to match with hardware
-      const profileQuery = await supabase
-        .from('profiles')
-        .select('full_name, username')
-        .eq('id', actualUserId)
-        .single();
-      
-      const userName = profileQuery.data?.full_name || profileQuery.data?.username || '';
-      
-      // Query hardware table for items assigned to this user by user_id
+      // Query hardware_inventory for items assigned to this user by user_id
       const hardwareQuery = await supabase
-        .from('hardware')
-        .select('id, type, model, serial_number, status, assigned_date, manufacturer, os_edition, os_version')
-        .eq('user_id', actualUserId)
-        .order('assigned_date', { ascending: false });
-      
-      // Also query hardware_inventory for items assigned by name (fallback)
-      const hardwareInventoryQuery = await supabase
         .from('hardware_inventory')
         .select('id, asset_type, device_name, serial_number, status, created_at, manufacturer, model, os_edition, os_version, asset_owner')
-        .eq('asset_owner', userName)
+        .eq('user_id', userId)
         .neq('status', 'Unassigned')
         .order('created_at', { ascending: false });
       
@@ -86,7 +68,7 @@ export const useUserAssets = (userId?: string) => {
         const fallbackQuery = await (supabase as any)
           .from('account_inventory')
           .select('id, software, role_account_type, status')
-          .eq('user_id', actualUserId)
+          .eq('user_id', userId)
           .is('date_access_revoked', null);
         
         finalSoftwareData = fallbackQuery.data || [];
@@ -100,31 +82,17 @@ export const useUserAssets = (userId?: string) => {
       const certificatesQuery = await supabase
         .from('certificates')
         .select('*')
-        .eq('user_id', actualUserId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (hardwareQuery.error) throw hardwareQuery.error;
-      if (hardwareInventoryQuery.error) console.warn('Hardware inventory query error:', hardwareInventoryQuery.error);
       if (finalSoftwareError) console.warn('Software query error:', finalSoftwareError);
       if (certificatesQuery.error) throw certificatesQuery.error;
 
-      // Transform hardware data from hardware table
-      const hardwareFromTable = (hardwareQuery.data || []).map(item => ({
-        id: item.id,
-        type: item.type || 'Unknown',
-        model: item.model || 'Unknown Model',
-        serial_number: item.serial_number,
-        status: item.status || 'Active',
-        assigned_date: item.assigned_date,
-        manufacturer: item.manufacturer,
-        os_edition: item.os_edition,
-        os_version: item.os_version,
-      }));
-
       // Transform hardware data from hardware_inventory table
-      const hardwareFromInventory = (hardwareInventoryQuery.data || []).map(item => ({
+      const uniqueHardware = (hardwareQuery.data || []).map(item => ({
         id: item.id,
-        type: item.asset_type,
+        type: item.asset_type || 'Unknown',
         model: item.model || item.device_name || 'Unknown Model',
         serial_number: item.serial_number,
         status: item.status || 'Active',
@@ -133,12 +101,6 @@ export const useUserAssets = (userId?: string) => {
         os_edition: item.os_edition,
         os_version: item.os_version,
       }));
-
-      // Combine both sources, removing duplicates by serial_number
-      const allHardware = [...hardwareFromTable, ...hardwareFromInventory];
-      const uniqueHardware = allHardware.filter((item, index, self) => 
-        index === self.findIndex(h => h.serial_number === item.serial_number)
-      );
 
       // Transform software data - ensure it's an array
       const transformedSoftware = Array.isArray(finalSoftwareData) 

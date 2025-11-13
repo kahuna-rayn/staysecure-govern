@@ -20,24 +20,16 @@ const HardwareManagement: React.FC = () => {
     assigned_date: new Date().toISOString().split('T')[0],
   });
 
-  // Get unassigned hardware items - items without an assigned user
+  // Get unassigned hardware items - check user_id IS NULL (primary) or status/asset_owner (fallback for legacy)
   const unassignedHardware = hardwareInventory.filter(item => {
-    const isActive = item.status === 'Active';
-    const hasNoAssignedUser = !item.asset_owner || item.asset_owner.trim() === '' || item.asset_owner === 'no-owner' || item.asset_owner === 'Unassigned';
-    
-    console.log('Hardware item:', item.device_name, {
-      isActive,
-      hasNoAssignedUser,
-      asset_owner: item.asset_owner,
-      status: item.status
-    });
-    
-    return isActive && hasNoAssignedUser;
+    const hasNoUserId = !item.user_id;
+    const isUnassigned = item.status === 'Unassigned' || item.status === 'Active';
+    const hasNoAssignedUser = !item.asset_owner || 
+      item.asset_owner.trim() === '' || 
+      item.asset_owner === 'no-owner' || 
+      item.asset_owner === 'Unassigned';
+    return hasNoUserId && (isUnassigned || hasNoAssignedUser);
   });
-
-  console.log('Total hardware inventory:', hardwareInventory.length);
-  console.log('Unassigned hardware count:', unassignedHardware.length);
-  console.log('Unassigned hardware items:', unassignedHardware);
 
   const selectedHardwareItem = hardwareInventory.find(item => item.id === formData.hardware_inventory_id);
 
@@ -66,13 +58,14 @@ const HardwareManagement: React.FC = () => {
         return;
       }
 
-      console.log('Assigning hardware to user:', selectedProfile.full_name || selectedProfile.username);
-      
       // Update the hardware inventory item to assign it to the user
+      // Set user_id (UUID foreign key) and keep asset_owner (name) for backward compatibility
       const { error } = await supabase
         .from('hardware_inventory')
         .update({ 
-          asset_owner: selectedProfile.full_name || selectedProfile.username || 'Assigned User'
+          user_id: formData.user_id,
+          asset_owner: selectedProfile.full_name || selectedProfile.username || 'Assigned User',
+          status: 'Assigned'
         })
         .eq('id', formData.hardware_inventory_id);
 

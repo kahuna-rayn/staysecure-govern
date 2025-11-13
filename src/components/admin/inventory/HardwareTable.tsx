@@ -21,20 +21,11 @@ const HardwareTable: React.FC<HardwareTableProps> = ({
 }) => {
   const handleUnassign = async (item: HardwareInventoryItem) => {
     try {
-      // First, delete from hardware table if it exists
-      const { error: hardwareDeleteError } = await supabase
-        .from('hardware')
-        .delete()
-        .eq('serial_number', item.serial_number);
-
-      if (hardwareDeleteError) {
-        console.log('Hardware table entry deletion failed (may not exist):', hardwareDeleteError);
-      }
-
-      // Then update hardware_inventory table
+      // Update hardware_inventory to unassign by setting user_id to null
       const { error: inventoryError } = await supabase
         .from('hardware_inventory')
         .update({ 
+          user_id: null,
           asset_owner: null,
           status: 'Unassigned'
         })
