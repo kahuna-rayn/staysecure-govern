@@ -1,7 +1,7 @@
 import React from "react";
 import { Phone, MapPin, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import EditableField from "@/modules/organisation/components/profile/EditableField";
+import { EditableField } from "@/modules/organisation";
 import { useUserDepartments } from "@/hooks/useUserDepartments";
 import { useUserProfileRoles } from "@/hooks/useUserProfileRoles";
 

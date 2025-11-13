@@ -6,13 +6,10 @@ export type AppRole = 'super_admin' | 'client_admin' | 'manager' | 'author' | 'u
 
 export const useUserRoleById = (userId?: string) => {
   const queryClient = useQueryClient();
-  
-  console.log('useUserRoleById called with userId:', userId);
 
   const { data: role, isLoading, error } = useQuery({
     queryKey: ['user-role', userId],
     queryFn: async () => {
-      console.log('useUserRoleById query executing for userId:', userId);
       if (!userId) return 'user';
       
       const { data, error } = await supabase
@@ -26,9 +23,7 @@ export const useUserRoleById = (userId?: string) => {
         throw error;
       }
       
-      console.log('Fetched role data:', data);
       const roleValue = (data?.role as AppRole) || 'user';
-      console.log('Returning role:', roleValue);
       return roleValue;
     },
     enabled: !!userId,

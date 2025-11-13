@@ -3,7 +3,7 @@ import React from "react";
 import { Calendar, Shield, Clock, Trash2 } from "lucide-react";
 import { useSoftwareEdit } from "@/hooks/useSoftwareEdit";
 import { useUserAssets } from "@/hooks/useUserAssets";
-import EditableField from "@/modules/organisation/components/profile/EditableField";
+import { EditableField } from "@/modules/organisation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -29,11 +29,6 @@ const SoftwareAccounts: React.FC<SoftwareAccountsProps> = ({ profile }) => {
   
   // Use the fresh data from the hook instead of potentially stale prop data
   const software = hookSoftware || propSoftware;
-  
-  console.log('SoftwareAccounts - profile.software (prop):', propSoftware);
-  console.log('SoftwareAccounts - useUserAssets software (hook):', hookSoftware);
-  console.log('SoftwareAccounts - using software:', software);
-  console.log('SoftwareAccounts - first software item:', software[0]);
 
   const {
     editingField,
@@ -82,9 +77,6 @@ const SoftwareAccounts: React.FC<SoftwareAccountsProps> = ({ profile }) => {
   };
 
   const handleDeleteSoftware = async (softwareId: string, softwareName: string) => {
-    console.log('handleDeleteSoftware called with:', { softwareId, softwareName });
-    console.log('softwareId type:', typeof softwareId, 'value:', softwareId);
-    
     try {
       await deleteSoftware(softwareId);
       toast({
@@ -139,12 +131,6 @@ const SoftwareAccounts: React.FC<SoftwareAccountsProps> = ({ profile }) => {
         />
       );
     }
-
-    // Debug: Log the role value
-    console.log('Role badge - item:', item, 'role_account_type:', item.role_account_type);
-    console.log('Role badge - typeof role_account_type:', typeof item.role_account_type);
-    console.log('Role badge - role_account_type === null:', item.role_account_type === null);
-    console.log('Role badge - role_account_type === undefined:', item.role_account_type === undefined);
 
     // Render colored badge
     const role = item.role_account_type || 'Unknown';

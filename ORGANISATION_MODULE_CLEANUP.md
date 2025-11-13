@@ -12,7 +12,7 @@ Files are scattered across multiple locations, breaking the documented module st
 src/modules/organisation/
 ├── components/
 │   ├── admin/              # User management components
-│   ├── knowledge/          # Role, department, location management
+│   ├── organisational/          # Role, department, location management
 │   ├── OrganisationPanel.tsx
 │   ├── OrganisationProfile.tsx
 │   └── OrganisationCertificates.tsx

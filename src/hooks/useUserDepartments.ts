@@ -41,9 +41,6 @@ export const useUserDepartments = (userId?: string) => {
         `)
         .eq('user_id', userId);
 
-      console.log('useUserDepartments: Raw departments data:', data);
-      console.log('useUserDepartments: Departments query error:', error);
-
       if (error) throw error;
 
       const formattedData = data?.map(item => ({
@@ -57,7 +54,6 @@ export const useUserDepartments = (userId?: string) => {
         pairing_id: item.pairing_id || ''
       })) || [];
 
-      console.log('useUserDepartments: Formatted departments data:', formattedData);
       setUserDepartments(formattedData);
     } catch (err) {
       console.error('useUserDepartments: Error fetching departments:', err);
