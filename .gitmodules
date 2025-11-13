@@ -1,3 +1,3 @@
 [submodule "src/modules/organisation"]
 	path = src/modules/organisation
-	url = https://github.com/kahuna-rayn/staysecure-organisation.git
+	url = https://github.com/kahuna-rayn/organisation-management-module.git
