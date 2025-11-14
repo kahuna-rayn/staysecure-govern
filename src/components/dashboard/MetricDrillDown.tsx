@@ -27,6 +27,9 @@ interface MetricDrillDownProps {
   softwareInventory: any[];
   softwareAssignments: any[];
   physicalLocationAccess: any[];
+  phishingData?: any[];
+  documentAssignments?: any[];
+  documents?: any[];
 }
 
 const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
@@ -40,7 +43,10 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
   hardwareInventory,
   softwareInventory,
   softwareAssignments,
-  physicalLocationAccess
+  physicalLocationAccess,
+  phishingData = [],
+  documentAssignments = [],
+  documents = []
 }) => {
   const currentLevel = drillDownPath[drillDownPath.length - 1];
   const canDrillDown = currentLevel.level < metric.drillDownLevels.length;
@@ -121,12 +127,73 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
         // This would need hardware data to determine relevance
         return profiles.map(p => p.id);
       
+      // Readiness metrics - Phishing
+      case 'staff_phished':
+        return phishingData
+          .filter(p => p.resource === 'click_link')
+          .map(p => p.user_id);
+      
+      case 'phishing_emails_sent':
+        return phishingData
+          .filter(p => p.resource === 'sent')
+          .map(p => p.user_id);
+      
+      case 'staff_failed_phishing':
+        return phishingData
+          .filter(p => p.resource === 'click_link')
+          .map(p => p.user_id);
+      
+      // Readiness metrics - Documents
       default:
+        // For document-related metrics
+        if (metric.id.includes('_completion') || metric.id.includes('required_') || 
+            metric.id.includes('staff_read_') || metric.id.includes('staff_required_')) {
+          
+          // Find the specific document for this metric
+          let targetDocument = null;
+          
+          if (metric.id.includes('chh') || 
+              metric.title.toLowerCase().includes('cyber hygiene handbook - all staff')) {
+            targetDocument = documents.find(d => 
+              d.title === 'Cyber Hygiene Handbook - All Staff'
+            );
+          } else if (metric.id.includes('irp') || metric.title.toLowerCase().includes('incident')) {
+            targetDocument = documents.find(d => 
+              d.title?.toLowerCase().includes('incident response') ||
+              d.category?.toLowerCase().includes('incident')
+            );
+          } else if (metric.id.includes('isp') || metric.title.toLowerCase().includes('security')) {
+            targetDocument = documents.find(d => 
+              d.title?.toLowerCase().includes('information security') ||
+              d.title?.toLowerCase().includes('security policy')
+            );
+          } else if (metric.id.includes('dpp') || metric.title.toLowerCase().includes('privacy')) {
+            targetDocument = documents.find(d => 
+              d.title?.toLowerCase().includes('data protection') ||
+              d.title?.toLowerCase().includes('privacy policy')
+            );
+          }
+          
+          if (targetDocument) {
+            // For "Staff Read" metrics, only show users who have completed reading
+            // For "Staff Required to Read" metrics, show all assigned users
+            const shouldFilterCompleted = metric.id.includes('staff_read_') || 
+                                         metric.id.includes('_completion') ||
+                                         metric.title.toLowerCase().includes('staff read');
+            
+            const relevantAssignments = documentAssignments.filter(a => 
+              a.document_id === targetDocument.document_id &&
+              (shouldFilterCompleted ? a.status === 'Completed' : true)
+            );
+            
+            return relevantAssignments.map(a => a.user_id);
+          }
+        }
         return profiles.map(p => p.id);
     }
   };
 
-  // Calculate metric value for specific users (similar to ReadinessDrillDown)
+  // Calculate metric value for specific users (handles education, protection, and readiness metrics)
   const calculateMetricValueForUsers = (userIds: string[], profiles: any[]): number => {
     const relevantProfiles = profiles.filter(p => userIds.includes(p.id));
     
