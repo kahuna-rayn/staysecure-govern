@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Plus, Settings, Shield, Package, BarChart, Upload } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { RoleBadge } from '@/components/ui/role-badge';
-import { UserManagement } from '@/modules/organisation';
+import { UserManagement } from 'staysecure-organisation';
 import InventoryManagement from './admin/InventoryManagement';
 import Dashboard from './Dashboard';
 import ImportData from './ImportData';

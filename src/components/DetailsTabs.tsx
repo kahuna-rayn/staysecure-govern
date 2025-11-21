@@ -1,6 +1,6 @@
 
 import React from "react";
-import { PersonaProfile, type PersonProfile, Certificates, PhysicalLocationTab } from "@/modules/organisation";
+import { PersonaProfile, type PersonProfile, Certificates, PhysicalLocationTab } from "staysecure-organisation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import AccountDetails from "./AccountDetails";

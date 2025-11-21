@@ -3,7 +3,7 @@ import React from "react";
 import { Calendar, Shield, Clock, Trash2 } from "lucide-react";
 import { useSoftwareEdit } from "@/hooks/useSoftwareEdit";
 import { useUserAssets } from "@/hooks/useUserAssets";
-import { EditableField } from "@/modules/organisation";
+import { EditableField } from "staysecure-organisation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";

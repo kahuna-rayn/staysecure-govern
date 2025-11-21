@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
-import { OrganisationPanel, OrganisationProvider } from '@/modules/organisation';
+import { OrganisationPanel, OrganisationProvider } from 'staysecure-organisation';
 
 const SettingsPanel: React.FC = () => {
   const { hasAdminAccess, loading: roleLoading } = useUserRole();

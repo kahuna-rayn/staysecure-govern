@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { DatabaseSelectCell } from './DatabaseSelectCell';
 import { MultiDepartmentSelectCell } from './MultiDepartmentSelectCell';
-import { DepartmentRolePairsDisplay } from '@/modules/organisation';
+import { DepartmentRolePairsDisplay } from 'staysecure-organisation';
 import { DatabaseDisplayCell } from './DatabaseDisplayCell';
 
 interface ColumnConfig {

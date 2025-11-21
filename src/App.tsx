@@ -3,12 +3,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from 'staysecure-auth';
 import { LoginForm } from 'staysecure-auth';
+import { OrganisationProvider, PersonaProfile } from 'staysecure-organisation';
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
-import { PersonaProfile, UserDetailView } from "@/modules/organisation";
 import AdminPanel from "@/components/AdminPanel";
 import InventoryPanel from "@/components/InventoryPanel";
 import SettingsPanel from "@/components/SettingsPanel";
@@ -17,10 +17,30 @@ import KnowledgePanel from "@/components/KnowledgePanel";
 import CompliancePanel from "@/components/CompliancePanel";
 import BreachManagementPanel from "@/components/BreachManagementPanel";
 import NotFound from "./pages/NotFound";
+import UserDetail from "./pages/UserDetail";
 import { useState, useEffect } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 
 const queryClient = new QueryClient();
+
+// Redirect component for /admin route
+const AdminRedirect = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Redirect to home with settings view (which contains OrganisationPanel)
+    // The OrganisationPanel will handle the activeTab state internally
+    navigate('/', { 
+      state: { 
+        activeTab: 'settings'
+      },
+      replace: true 
+    });
+  }, [navigate, location.state]);
+  
+  return null;
+};
 
 const AppContentRouter = () => {
   const location = useLocation();
@@ -50,7 +70,8 @@ const AppContentRouter = () => {
             {currentView === 'settings' && <SettingsPanel />}
           </div>
         } />
-        <Route path="/admin/users/:userId" element={<UserDetailView />} />
+        <Route path="/admin/users/:userId" element={<UserDetail />} />
+        <Route path="/admin" element={<AdminRedirect />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -101,40 +122,49 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider config={{
-      supabaseClient: supabase,
-      edgeFunctions: {
-        updatePassword: 'update-user-password',
-        sendEmail: 'send-email',
-        sendPasswordReset: 'send-password-reset'
-      },
-      onActivation: async (userId) => {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .update({ status: 'Active' })
-            .eq('id', userId)
-            .select();
-          
-          if (error) {
+const App = () => {
+  const organisationConfig = {
+    supabaseClient: supabase,
+    // Add other config as needed
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider config={{
+        supabaseClient: supabase,
+        edgeFunctions: {
+          updatePassword: 'update-user-password',
+          sendEmail: 'send-email',
+          sendPasswordReset: 'send-password-reset'
+        },
+        onActivation: async (userId) => {
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .update({ status: 'Active' })
+              .eq('id', userId)
+              .select();
+            
+            if (error) {
+              return false;
+            }
+            
+            return true;
+          } catch (err) {
             return false;
           }
-          
-          return true;
-        } catch (err) {
-          return false;
         }
-      }
-    }}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AppContent />
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+      }}>
+        <OrganisationProvider config={organisationConfig}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AppContent />
+          </TooltipProvider>
+        </OrganisationProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
