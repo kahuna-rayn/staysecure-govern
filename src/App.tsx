@@ -126,37 +126,81 @@ const AppContent = () => {
 // Error Boundary Component
 class ErrorBoundary extends Component<
   { children: ReactNode },
-  { hasError: boolean; error: Error | null }
+  { hasError: boolean; error: Error | null; errorString: string }
 > {
   constructor(props: { children: ReactNode }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorString: '' };
   }
 
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: Error | unknown) {
+    // Try to extract error information even if it's not a standard Error object
+    let errorString = 'Unknown error';
+    let errorObj: Error | null = null;
+    
+    if (error instanceof Error) {
+      errorObj = error;
+      errorString = error.message || 'Error without message';
+    } else if (typeof error === 'string') {
+      errorString = error;
+    } else if (error && typeof error === 'object') {
+      try {
+        errorString = JSON.stringify(error, null, 2);
+      } catch {
+        errorString = String(error);
+      }
+    } else {
+      errorString = String(error);
+    }
+    
+    return { hasError: true, error: errorObj, errorString };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error | unknown, errorInfo: ErrorInfo) {
     console.error('[Error Boundary] Caught error:', error);
-    console.error('[Error Boundary] Error message:', error.message);
-    console.error('[Error Boundary] Error stack:', error.stack);
+    console.error('[Error Boundary] Error type:', typeof error);
+    console.error('[Error Boundary] Error constructor:', error?.constructor?.name);
+    
+    if (error instanceof Error) {
+      console.error('[Error Boundary] Error message:', error.message);
+      console.error('[Error Boundary] Error name:', error.name);
+      console.error('[Error Boundary] Error stack:', error.stack);
+    } else {
+      console.error('[Error Boundary] Non-Error object:', error);
+      try {
+        console.error('[Error Boundary] Error as JSON:', JSON.stringify(error, null, 2));
+      } catch {
+        console.error('[Error Boundary] Error as string:', String(error));
+      }
+    }
+    
     console.error('[Error Boundary] Error info:', errorInfo);
+    console.error('[Error Boundary] Component stack:', errorInfo.componentStack);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="text-center">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+          <div className="text-center max-w-4xl">
             <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h1>
-            <p className="text-gray-600 mb-2">Error: {this.state.error?.message || 'Unknown error'}</p>
-            <pre className="text-xs text-left bg-gray-100 p-4 rounded overflow-auto max-w-2xl">
-              {this.state.error?.stack}
-            </pre>
+            <div className="text-left bg-white p-4 rounded shadow-lg mb-4">
+              <p className="font-semibold mb-2">Error Details:</p>
+              <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto max-h-96 mb-4 whitespace-pre-wrap">
+                {this.state.errorString}
+              </pre>
+              {this.state.error?.stack && (
+                <>
+                  <p className="font-semibold mb-2">Stack Trace:</p>
+                  <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto max-h-96 whitespace-pre-wrap">
+                    {this.state.error.stack}
+                  </pre>
+                </>
+              )}
+            </div>
             <button
               onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Reload Page
             </button>
@@ -170,8 +214,20 @@ class ErrorBoundary extends Component<
 }
 
 const App = () => {
+  // Wrap supabase client access in try-catch to catch any initialization errors
+  let supabaseClient;
+  try {
+    supabaseClient = supabase;
+    console.log('[App] Supabase client accessed successfully');
+  } catch (error: any) {
+    console.error('[App] Error accessing supabase client:', error);
+    console.error('[App] Error message:', error?.message);
+    console.error('[App] Error type:', typeof error);
+    throw error; // Re-throw so ErrorBoundary can catch it
+  }
+
   const organisationConfig = {
-    supabaseClient: supabase,
+    supabaseClient: supabaseClient,
     // Add other config as needed
   };
 
@@ -179,7 +235,7 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider config={{
-          supabaseClient: supabase,
+          supabaseClient: supabaseClient,
           edgeFunctions: {
             updatePassword: 'update-user-password',
             sendEmail: 'send-email',
@@ -187,7 +243,7 @@ const App = () => {
           },
           onActivation: async (userId) => {
             try {
-              const { data, error } = await supabase
+              const { data, error } = await supabaseClient
                 .from('profiles')
                 .update({ status: 'Active' })
                 .eq('id', userId)
