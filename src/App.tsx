@@ -219,8 +219,23 @@ const App = () => {
   try {
     supabaseClient = supabase;
     console.log('[App] Supabase client accessed successfully');
+    
+    // Validate that the client's auth methods exist and are callable
+    if (!supabaseClient || !supabaseClient.auth) {
+      throw new Error('Supabase client or auth property is missing');
+    }
+    
+    if (typeof supabaseClient.auth.getSession !== 'function') {
+      throw new Error('supabaseClient.auth.getSession is not a function');
+    }
+    
+    if (typeof supabaseClient.auth.onAuthStateChange !== 'function') {
+      throw new Error('supabaseClient.auth.onAuthStateChange is not a function');
+    }
+    
+    console.log('[App] Supabase client validation passed');
   } catch (error: any) {
-    console.error('[App] Error accessing supabase client:', error);
+    console.error('[App] Error accessing/validating supabase client:', error);
     console.error('[App] Error message:', error?.message);
     console.error('[App] Error type:', typeof error);
     throw error; // Re-throw so ErrorBoundary can catch it
@@ -234,43 +249,45 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider config={{
-          supabaseClient: supabaseClient,
-          edgeFunctions: {
-            updatePassword: 'update-user-password',
-            sendEmail: 'send-email',
-            sendPasswordReset: 'send-password-reset'
-          },
-          onActivation: async (userId) => {
-            try {
-              const { data, error } = await supabaseClient
-                .from('profiles')
-                .update({ status: 'Active' })
-                .eq('id', userId)
-                .select();
-              
-              if (error) {
-                console.error('[App] onActivation error:', error);
+        <ErrorBoundary>
+          <AuthProvider config={{
+            supabaseClient: supabaseClient,
+            edgeFunctions: {
+              updatePassword: 'update-user-password',
+              sendEmail: 'send-email',
+              sendPasswordReset: 'send-password-reset'
+            },
+            onActivation: async (userId) => {
+              try {
+                const { data, error } = await supabaseClient
+                  .from('profiles')
+                  .update({ status: 'Active' })
+                  .eq('id', userId)
+                  .select();
+                
+                if (error) {
+                  console.error('[App] onActivation error:', error);
+                  return false;
+                }
+                
+                return true;
+              } catch (err: any) {
+                console.error('[App] onActivation exception:', err);
+                console.error('[App] onActivation error message:', err?.message);
+                console.error('[App] onActivation error stack:', err?.stack);
                 return false;
               }
-              
-              return true;
-            } catch (err: any) {
-              console.error('[App] onActivation exception:', err);
-              console.error('[App] onActivation error message:', err?.message);
-              console.error('[App] onActivation error stack:', err?.stack);
-              return false;
             }
-          }
-        }}>
-          <OrganisationProvider config={organisationConfig}>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <AppContent />
-            </TooltipProvider>
-          </OrganisationProvider>
-        </AuthProvider>
+          }}>
+            <OrganisationProvider config={organisationConfig}>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <AppContent />
+              </TooltipProvider>
+            </OrganisationProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </QueryClientProvider>
     </ErrorBoundary>
   );
