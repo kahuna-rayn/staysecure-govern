@@ -101,9 +101,8 @@ export const ImportErrorReport: React.FC<ImportErrorReportProps> = ({
           {/* Action Buttons */}
           {(errors.length > 0 || warnings.length > 0) && (
             <div className="flex gap-2">
-              <Button onClick={downloadErrorReport} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Download Report
+              <Button onClick={downloadErrorReport} variant="outline" size="icon">
+                <Download className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -238,9 +237,8 @@ export const ImportErrorReport: React.FC<ImportErrorReportProps> = ({
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={onClose} variant="outline">
-            <X className="h-4 w-4 mr-2" />
-            Close
+          <Button onClick={onClose} variant="outline" size="icon">
+            <X className="h-4 w-4" />
           </Button>
         </div>
       </DialogContent>

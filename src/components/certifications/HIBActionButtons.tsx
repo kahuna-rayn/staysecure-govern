@@ -43,13 +43,11 @@ const HIBActionButtons: React.FC<HIBActionButtonsProps> = ({ clauses, onToggleIm
 
   return (
     <div className="flex gap-2">
-      <Button onClick={onToggleImport} variant="outline" className="flex items-center gap-2">
+      <Button onClick={onToggleImport} variant="outline" size="icon">
         <Upload className="h-4 w-4" />
-        Import Data
       </Button>
-      <Button onClick={downloadCurrentData} variant="outline" className="flex items-center gap-2">
+      <Button onClick={downloadCurrentData} variant="outline" size="icon">
         <Download className="h-4 w-4" />
-        Export Data
       </Button>
     </div>
   );

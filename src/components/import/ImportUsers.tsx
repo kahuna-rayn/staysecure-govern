@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, Users } from 'lucide-react';
+import { Upload, FileText, Users, Download, X, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { useUserProfiles } from '@/hooks/useUserProfiles';
 import { supabase } from '@/integrations/supabase/client';
@@ -269,26 +269,21 @@ const ImportUsers: React.FC = () => {
             <Button
               onClick={handleImport}
               disabled={isProcessing}
-              className="flex items-center gap-2"
+              size="icon"
             >
               {isProcessing ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Processing...
-                </>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               ) : (
-                <>
-                  <Upload className="h-4 w-4" />
-                  Import Users
-                </>
+                <Upload className="h-4 w-4" />
               )}
             </Button>
             <Button
               variant="outline"
               onClick={() => setUploadedFile(null)}
               disabled={isProcessing}
+              size="icon"
             >
-              Cancel
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         )}
@@ -305,7 +300,9 @@ const ImportUsers: React.FC = () => {
               <span className="text-sm font-medium">Users Template (CSV)</span>
               <Badge variant="secondary" className="text-xs">Basic template with essential fields</Badge>
             </div>
-            <Button size="sm" variant="outline">Download</Button>
+            <Button size="sm" variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
           
           <div className="flex items-center justify-between p-2 bg-white rounded border">
@@ -314,7 +311,9 @@ const ImportUsers: React.FC = () => {
               <span className="text-sm font-medium">Users Template (XLSX)</span>
               <Badge variant="secondary" className="text-xs">Comprehensive template with all fields</Badge>
             </div>
-            <Button size="sm" variant="outline">Download</Button>
+            <Button size="sm" variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

@@ -274,11 +274,11 @@ export function MultiMemberSelectCell({ breachTeamId, onUpdate }: MultiMemberSel
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button onClick={handleAddMember} className="flex-1">
-                Add Member
+              <Button onClick={handleAddMember} size="icon">
+                <Plus className="h-4 w-4" />
               </Button>
-              <Button variant="outline" onClick={() => setOpen(false)} className="flex-1">
-                Cancel
+              <Button variant="outline" onClick={() => setOpen(false)} size="icon">
+                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>

@@ -947,7 +947,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={() => setSelectedMetric(null)} className="flex items-center gap-2">
             <ChevronRight className="h-4 w-4 rotate-180" />
-            Back to Dashboard
+            
           </Button>
           <h1 className="text-2xl font-bold">{metric.title}</h1>
         </div>

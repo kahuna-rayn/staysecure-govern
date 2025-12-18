@@ -186,9 +186,8 @@ const HIBImportSection: React.FC<HIBImportSectionProps> = ({ onImport, onClose }
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-md font-medium">Import HIB Checklist Data</h4>
-            <Button onClick={downloadCSVTemplate} variant="outline" size="sm" className="flex items-center gap-2">
+            <Button onClick={downloadCSVTemplate} variant="outline" size="icon">
               <Download className="h-4 w-4" />
-              Download Template
             </Button>
           </div>
           

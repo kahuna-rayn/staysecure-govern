@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, Laptop, Package, Users, Database, Shield } from 'lucide-react';
+import { Upload, FileText, Laptop, Package, Users, Database, Shield, Download } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { useInventory } from '@/hooks/useInventory';
 import Papa from 'papaparse';
@@ -308,7 +308,9 @@ const ImportAssets: React.FC = () => {
               <span className="text-sm font-medium">{selectedType?.name} Template (CSV)</span>
               <Badge variant="secondary" className="text-xs">Basic template with essential fields</Badge>
             </div>
-            <Button size="sm" variant="outline">Download</Button>
+            <Button size="sm" variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
           
           <div className="flex items-center justify-between p-2 bg-white rounded border">
@@ -317,7 +319,9 @@ const ImportAssets: React.FC = () => {
               <span className="text-sm font-medium">{selectedType?.name} Template (XLSX)</span>
               <Badge variant="secondary" className="text-xs">Comprehensive template with all fields</Badge>
             </div>
-            <Button size="sm" variant="outline">Download</Button>
+            <Button size="sm" variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

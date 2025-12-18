@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { MapPin, Plus, Edit, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, X, Save } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -270,11 +270,11 @@ const LocationManagement: React.FC = () => {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Cancel
+                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} size="icon">
+                    <X className="h-4 w-4" />
                   </Button>
-                  <Button onClick={handleSubmit} disabled={!formData.name.trim()}>
-                    Create Location
+                  <Button onClick={handleSubmit} disabled={!formData.name.trim()} size="icon">
+                    <Save className="h-4 w-4" />
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -420,11 +420,11 @@ const LocationManagement: React.FC = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingLocation(null)}>
-              Cancel
+            <Button variant="outline" onClick={() => setEditingLocation(null)} size="icon">
+              <X className="h-4 w-4" />
             </Button>
-            <Button onClick={handleSubmit} disabled={!formData.name.trim()}>
-              Update Location
+            <Button onClick={handleSubmit} disabled={!formData.name.trim()} size="icon">
+              <Save className="h-4 w-4" />
             </Button>
           </DialogFooter>
         </DialogContent>

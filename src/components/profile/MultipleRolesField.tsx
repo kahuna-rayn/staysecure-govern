@@ -274,8 +274,8 @@ const MultipleRolesField: React.FC<MultipleRolesFieldProps> = ({
               </SelectContent>
             </Select>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsAddingRole(false)}>
-                Cancel
+              <Button variant="outline" onClick={() => setIsAddingRole(false)} size="icon">
+                <X className="h-4 w-4" />
               </Button>
               <Button 
                 onClick={handleAddRole} 

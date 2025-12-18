@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { FileText, Plus, Search, Edit, Trash2, Users, Calendar, ExternalLink } from 'lucide-react';
+import { FileText, Plus, Search, Edit, Trash2, Users, Calendar, ExternalLink, Save } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -431,8 +431,8 @@ const DocumentForm: React.FC<DocumentFormProps> = ({ initialData, onSubmit }) =>
       </div>
 
       <div className="flex justify-end space-x-2 pt-4">
-        <Button type="submit">
-          {initialData ? 'Update' : 'Create'} Document
+        <Button type="submit" size="icon">
+          <Save className="h-4 w-4" />
         </Button>
       </div>
     </form>
