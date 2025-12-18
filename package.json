@@ -61,6 +61,7 @@
     "recharts": "^2.12.7",
     "sonner": "^1.5.0",
     "staysecure-auth": "github:kahuna-rayn/staysecure-auth#main",
+    "staysecure-notifications": "github:kahuna-rayn/staysecure-notifications#main",
     "staysecure-organisation": "github:kahuna-rayn/staysecure-organisation#main",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
