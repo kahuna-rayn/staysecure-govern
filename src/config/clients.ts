@@ -26,9 +26,9 @@ const parseClientConfigs = (): Record<string, ClientConfig> => {
           displayName: parsed[clientId].displayName
         });
       });
-            // In govern/src/config/clients.ts, after line 29, add:
       console.log('[clients.ts] Parsed config keys:', Object.keys(parsed));
-      console.log('[clients.ts] Default anon key exists:', !!parsed['default']?.supabaseAnonKey);
+      console.log('[clients.ts] Default config:', parsed['default']);
+      console.log('[clients.ts] Default displayName:', parsed['default']?.displayName);
       return parsed;
     } catch (e) {
       console.error('[clients.ts] Failed to parse VITE_CLIENT_CONFIGS:', e);
