@@ -124,44 +124,15 @@ const clientCache = new Map<string, SupabaseClient<Database>>();
 
 // Get or create Supabase client for current path
 const getSupabaseClient = (): SupabaseClient<Database> => {
-  const pathParts = typeof window !== 'undefined' ? window.location.pathname.split('/').filter(Boolean) : [];
-  const isRootPath = pathParts.length === 0;
-  
-  // Early check: if on root path without default client, return a dummy client
-  // This prevents errors when AuthProvider initializes before Index.tsx renders
-  if (isRootPath && typeof window !== 'undefined' && !CLIENT_CONFIGS['default']) {
-    // Return a dummy client with invalid config to prevent actual database access
-    // The error page will be shown by Index.tsx instead
-    const dummyUrl = 'https://dummy.supabase.co';
-    const dummyKey = 'dummy-key';
-    const dummyCacheKey = 'dummy-client';
-    
-    if (!clientCache.has(dummyCacheKey)) {
-      const dummyClient = createClient<Database>(dummyUrl, dummyKey);
-      clientCache.set(dummyCacheKey, dummyClient);
-    }
-    
-    return clientCache.get(dummyCacheKey)!;
-  }
-  
-  const clientId = getCurrentClientId();
-  
-  // Return cached client if it exists
-  if (clientCache.has(clientId)) {
-    return clientCache.get(clientId)!;
-  }
-  
-  // Create new client
-  let supabaseUrl: string;
-  let supabaseAnonKey: string;
-  
   try {
-    const config = getClientConfig();
-    supabaseUrl = config.supabaseUrl;
-    supabaseAnonKey = config.supabaseAnonKey;
-  } catch (error: any) {
-    // If we get NO_CLIENT_SPECIFIED error, return dummy client for root path
-    if (error.message === 'NO_CLIENT_SPECIFIED' && isRootPath) {
+    const pathParts = typeof window !== 'undefined' ? window.location.pathname.split('/').filter(Boolean) : [];
+    const isRootPath = pathParts.length === 0;
+    
+    // Early check: if on root path without default client, return a dummy client
+    // This prevents errors when AuthProvider initializes before Index.tsx renders
+    if (isRootPath && typeof window !== 'undefined' && !CLIENT_CONFIGS['default']) {
+      // Return a dummy client with invalid config to prevent actual database access
+      // The error page will be shown by Index.tsx instead
       const dummyUrl = 'https://dummy.supabase.co';
       const dummyKey = 'dummy-key';
       const dummyCacheKey = 'dummy-client';
@@ -173,69 +144,115 @@ const getSupabaseClient = (): SupabaseClient<Database> => {
       
       return clientCache.get(dummyCacheKey)!;
     }
-    // Re-throw other errors
-    throw error;
-  }
-  
-  // Use client-specific storage key to avoid conflicts between different Supabase projects
-  // Supabase creates storage keys based on the project URL hash, so we namespace by clientId
-  const storageKey = `sb-${clientId}-auth-token`;
-  
-  // Clean up any old localStorage entries that might reference wrong Supabase projects
-  // Supabase storage keys look like: sb-<project-ref-hash>-auth-token
-  if (typeof window !== 'undefined') {
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('sb-') && key.includes('auth-token') && !key.includes(clientId)) {
-        // This is an auth token from a different client/project - remove it
-        keysToRemove.push(key);
+    
+    const clientId = getCurrentClientId();
+    
+    // Return cached client if it exists
+    if (clientCache.has(clientId)) {
+      return clientCache.get(clientId)!;
+    }
+    
+    // Create new client
+    let supabaseUrl: string;
+    let supabaseAnonKey: string;
+    
+    try {
+      const config = getClientConfig();
+      supabaseUrl = config.supabaseUrl;
+      supabaseAnonKey = config.supabaseAnonKey;
+    } catch (error: any) {
+      // If we get NO_CLIENT_SPECIFIED error, return dummy client for root path
+      if (error.message === 'NO_CLIENT_SPECIFIED' && isRootPath) {
+        const dummyUrl = 'https://dummy.supabase.co';
+        const dummyKey = 'dummy-key';
+        const dummyCacheKey = 'dummy-client';
+        
+        if (!clientCache.has(dummyCacheKey)) {
+          const dummyClient = createClient<Database>(dummyUrl, dummyKey);
+          clientCache.set(dummyCacheKey, dummyClient);
+        }
+        
+        return clientCache.get(dummyCacheKey)!;
+      }
+      // Re-throw other errors
+      throw error;
+    }
+    
+    // Use client-specific storage key to avoid conflicts between different Supabase projects
+    // Supabase creates storage keys based on the project URL hash, so we namespace by clientId
+    const storageKey = `sb-${clientId}-auth-token`;
+    
+    // Clean up any old localStorage entries that might reference wrong Supabase projects
+    // Supabase storage keys look like: sb-<project-ref-hash>-auth-token
+    if (typeof window !== 'undefined') {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sb-') && key.includes('auth-token') && !key.includes(clientId)) {
+          // This is an auth token from a different client/project - remove it
+          keysToRemove.push(key);
+        }
+      }
+      if (keysToRemove.length > 0) {
+        keysToRemove.forEach(key => localStorage.removeItem(key));
       }
     }
-    if (keysToRemove.length > 0) {
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-    }
+    
+    const customStorage = {
+      getItem: (key: string) => {
+        // Supabase uses keys like 'sb-<project-ref>-auth-token'
+        // Map to our client-specific key
+        const actualKey = key.includes('auth-token') ? storageKey : key;
+        const value = localStorage.getItem(actualKey);
+        
+        return value;
+      },
+      setItem: (key: string, value: string) => {
+        const actualKey = key.includes('auth-token') ? storageKey : key;
+        
+        localStorage.setItem(actualKey, value);
+      },
+      removeItem: (key: string) => {
+        const actualKey = key.includes('auth-token') ? storageKey : key;
+        localStorage.removeItem(actualKey);
+      },
+    };
+    
+    const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storage: customStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    });
+    
+    // Cache it
+    clientCache.set(clientId, client);
+    
+    console.log('[supabase client] Successfully created client for:', clientId, 'URL:', supabaseUrl);
+    
+    return client;
+  } catch (error: any) {
+    console.error('[supabase client] Error creating client:', error);
+    console.error('[supabase client] Error message:', error?.message);
+    console.error('[supabase client] Error stack:', error?.stack);
+    console.error('[supabase client] Error name:', error?.name);
+    throw error;
   }
-  
-  const customStorage = {
-    getItem: (key: string) => {
-      // Supabase uses keys like 'sb-<project-ref>-auth-token'
-      // Map to our client-specific key
-      const actualKey = key.includes('auth-token') ? storageKey : key;
-      const value = localStorage.getItem(actualKey);
-      
-      return value;
-    },
-    setItem: (key: string, value: string) => {
-      const actualKey = key.includes('auth-token') ? storageKey : key;
-      
-      localStorage.setItem(actualKey, value);
-    },
-    removeItem: (key: string) => {
-      const actualKey = key.includes('auth-token') ? storageKey : key;
-      localStorage.removeItem(actualKey);
-    },
-  };
-  
-  const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      storage: customStorage,
-      persistSession: true,
-      autoRefreshToken: true,
-    }
-  });
-  
-  // Cache it
-  clientCache.set(clientId, client);
-  
-  return client;
 };
 
 // Export a getter function that always returns the current client
 export const supabase = new Proxy({} as SupabaseClient<Database>, {
   get(_target, prop) {
-    const client = getSupabaseClient();
-    const value = client[prop as keyof SupabaseClient<Database>];
-    return typeof value === 'function' ? value.bind(client) : value;
+    try {
+      const client = getSupabaseClient();
+      const value = client[prop as keyof SupabaseClient<Database>];
+      return typeof value === 'function' ? value.bind(client) : value;
+    } catch (error: any) {
+      console.error('[supabase client] Error accessing property:', prop, error);
+      console.error('[supabase client] Error message:', error?.message);
+      console.error('[supabase client] Error stack:', error?.stack);
+      throw error;
+    }
   }
 });
