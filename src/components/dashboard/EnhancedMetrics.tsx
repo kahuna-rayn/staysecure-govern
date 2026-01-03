@@ -194,10 +194,10 @@ const EnhancedMetrics: React.FC = () => {
       type: 'count'
     },
     {
-      id: 'mandarin_learners',
-      title: 'Mandarin Learners',
+      id: 'chinese_learners',
+      title: 'Chinese Learners',
       icon: <Globe className="h-6 w-6" />,
-      getValue: (profiles) => profiles.filter(p => p.language === 'Mandarin').length,
+      getValue: (profiles) => profiles.filter(p => p.language === 'Chinese').length,
       drillDownLevels: ['Organization', 'Location', 'Department'],
       type: 'count'
     }

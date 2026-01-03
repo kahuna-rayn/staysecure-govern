@@ -139,7 +139,7 @@ export function MultiDepartmentSelectCell({
             </SelectContent>
           </Select>
           <Button
-            size="sm"
+            size="icon"
             onClick={handleAddDepartment}
             disabled={!selectedDepartmentId || isAddingDepartment}
             className="h-8 px-2"

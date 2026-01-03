@@ -110,7 +110,7 @@ const AccountInventory: React.FC = () => {
         <h3 className="text-lg font-medium">Account Inventory</h3>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="icon">
+            <Button size="icon" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
             </Button>
           </DialogTrigger>

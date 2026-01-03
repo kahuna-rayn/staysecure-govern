@@ -203,7 +203,7 @@ const CertificateManagement: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">User Certificates</h3>
-        <Button 
+        <Button size="icon"
           className="flex items-center gap-2"
           onClick={() => setIsDialogOpen(true)}
         >

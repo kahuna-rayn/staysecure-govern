@@ -239,7 +239,7 @@ const MultipleRolesField: React.FC<MultipleRolesFieldProps> = ({
         
         {isEditing && (
           <Button
-            size="sm"
+            size="icon"
             variant="outline"
             onClick={() => setIsAddingRole(true)}
             className="h-6 w-6 p-0"

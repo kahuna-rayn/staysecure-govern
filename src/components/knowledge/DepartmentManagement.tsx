@@ -208,8 +208,8 @@ const DepartmentManagement: React.FC = () => {
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button size="icon" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4 mr-2" /> 
                   Add Department
                 </Button>
               </DialogTrigger>

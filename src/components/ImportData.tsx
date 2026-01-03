@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Upload, Download, FileText, Laptop, Package, Users, Database, Shield } from 'lucide-react';
 import ImportAssets from './import/ImportAssets';
-import ImportUsers from './import/ImportUsers';
+import { ImportUsersDialog } from 'staysecure-organisation';
 import ImportGuide from './import/ImportGuide';
 
 const ImportData: React.FC = () => {
@@ -44,7 +44,11 @@ const ImportData: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="users" className="space-y-6 mt-6">
-              <ImportUsers />
+              <ImportUsersDialog 
+                onImportComplete={async () => {
+                  // Refresh data if needed after import
+                }}
+              />
             </TabsContent>
 
             <TabsContent value="guide" className="space-y-6 mt-6">

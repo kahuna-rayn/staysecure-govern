@@ -102,7 +102,7 @@ const AdminPanel: React.FC = () => {
             <Card className="text-center">
               <CardContent className="pt-6">
                 <div className="text-3xl font-bold mb-2">502</div>
-                <div className="text-sm text-muted-foreground">Mandarin Learners</div>
+                <div className="text-sm text-muted-foreground">Chinese Learners</div>
               </CardContent>
             </Card>
           </div>

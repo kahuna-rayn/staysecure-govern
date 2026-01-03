@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, Clock, AlertCircle, Users, FileText, Calendar, TrendingUp, Download, Eye } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, Users, FileText, Calendar, TrendingUp, Download, Eye, ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -1056,12 +1056,13 @@ const ComplianceTracking: React.FC = () => {
             </div>
             <Button 
               variant="outline" 
+              size="icon"
               onClick={() => {
                 setShowCompletedDetails(false);
                 setActiveTab('users');
               }}
             >
-              Back to Overview
+              <ArrowLeft className="h-4 w-4" />
             </Button>
           </div>
 
@@ -1118,12 +1119,13 @@ const ComplianceTracking: React.FC = () => {
             </div>
             <Button 
               variant="outline" 
+              size="icon"
               onClick={() => {
                 setShowOverdueDetails(false);
                 setActiveTab('users');
               }}
             >
-              Back to Overview
+              <ArrowLeft className="h-4 w-4" />
             </Button>
           </div>
 
