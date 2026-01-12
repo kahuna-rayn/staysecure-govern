@@ -62,7 +62,7 @@ export const useUserRole = () => {
       case 'super_admin':
         return 'Super Administrator';
       case 'client_admin':
-        return 'Client Administrator';
+        return 'Administrator';
       case 'moderator':
         return 'Moderator';
       case 'user':

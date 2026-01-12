@@ -197,8 +197,18 @@ export function EditableCell<T extends { id: string }>({
     }
 
     if (column.type === 'badge') {
+      // Status-based coloring for user status badges
+      const getStatusBadgeClass = (status: string) => {
+        switch (status) {
+          case 'Active': return 'bg-primary text-primary-foreground';
+          case 'Inactive': return 'bg-red-500 text-white';
+          case 'OnLeave': return 'bg-yellow-500 text-white';
+          default: return 'bg-gray-500 text-white';
+        }
+      };
+      
       return (
-        <Badge variant="outline" className="text-xs">
+        <Badge className={`text-xs ${getStatusBadgeClass(String(displayValue))}`}>
           {displayValue}
         </Badge>
       );

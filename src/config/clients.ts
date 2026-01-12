@@ -9,29 +9,20 @@ export interface ClientConfig {
 const parseClientConfigs = (): Record<string, ClientConfig> => {
   const multiClientConfig = import.meta.env.VITE_CLIENT_CONFIGS;
   
-  console.log('[clients.ts] Debug:', {
-    hasViteClientConfigs: !!multiClientConfig,
-    envKeys: Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')),
-    viteSupabaseUrl: import.meta.env.VITE_SUPABASE_URL,
-  });
-  
   if (multiClientConfig) {
     try {
       const parsed = JSON.parse(multiClientConfig);
-      console.log('[clients.ts] Using multi-client configuration:', Object.keys(parsed));
-      // Debug: Log the actual URLs being used
-      Object.keys(parsed).forEach(clientId => {
-        console.log(`[clients.ts] Client "${clientId}" config:`, {
-          supabaseUrl: parsed[clientId].supabaseUrl,
-          displayName: parsed[clientId].displayName
-        });
-      });
-      console.log('[clients.ts] Parsed config keys:', Object.keys(parsed));
-      console.log('[clients.ts] Default config:', parsed['default']);
-      console.log('[clients.ts] Default displayName:', parsed['default']?.displayName);
       return parsed;
     } catch (e) {
       console.error('[clients.ts] Failed to parse VITE_CLIENT_CONFIGS:', e);
+      console.error('[clients.ts] Raw VITE_CLIENT_CONFIGS value (first 200 chars):', multiClientConfig.substring(0, 200));
+      console.error('[clients.ts] VITE_CLIENT_CONFIGS length:', multiClientConfig.length);
+      // Show the problematic area around position 157
+      const errorPos = 157;
+      const start = Math.max(0, errorPos - 20);
+      const end = Math.min(multiClientConfig.length, errorPos + 20);
+      console.error('[clients.ts] Context around error position:', multiClientConfig.substring(start, end));
+      console.error('[clients.ts] Falling back to single-client mode');
     }
   }
   
@@ -47,7 +38,6 @@ const parseClientConfigs = (): Record<string, ClientConfig> => {
     throw new Error('Missing Supabase configuration. Please set VITE_SUPABASE_URL and either VITE_SUPABASE_ANON_KEY, VITE_SUPABASE_PUB_KEY, or VITE_SB_PUB_KEY environment variables.');
   }
   
-  console.log('[clients.ts] Using single-client (dev) mode');
   return {
     'default': {
       clientId: 'default',
@@ -59,4 +49,3 @@ const parseClientConfigs = (): Record<string, ClientConfig> => {
 };
 
 export const CLIENT_CONFIGS = parseClientConfigs();
-

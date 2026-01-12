@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from 'staysecure-auth';
 import { LoginForm } from 'staysecure-auth';
-import { OrganisationProvider, PersonaProfile } from 'staysecure-organisation';
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import AdminPanel from "@/components/AdminPanel";
@@ -18,6 +17,7 @@ import CompliancePanel from "@/components/CompliancePanel";
 import BreachManagementPanel from "@/components/BreachManagementPanel";
 import NotFound from "./pages/NotFound";
 import UserDetail from "./pages/UserDetail";
+import { PersonaProfileWrapper } from "@/components/PersonaProfileWrapper";
 import { useState, useEffect } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useClient } from "@/hooks/useClient";
@@ -62,7 +62,7 @@ const AppContentRouter = () => {
         <Route path="/" element={
           <div className="container mx-auto py-6 px-4 max-w-6xl">
             {currentView === 'dashboard' && <Dashboard />}
-            {currentView === 'persona' && <PersonaProfile />}
+            {currentView === 'persona' && <PersonaProfileWrapper />}
             {currentView === 'admin' && <AdminPanel />}
             {currentView === 'compliance' && <CompliancePanel />}
             {currentView === 'inventory' && <InventoryPanel />}
@@ -109,7 +109,7 @@ const AppContent = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto py-6 px-4 max-w-6xl">
-          <PersonaProfile />
+          <PersonaProfileWrapper />
         </div>
       </div>
     );
@@ -120,11 +120,6 @@ const AppContent = () => {
 };
 
 const App = () => {
-  const organisationConfig = {
-    supabaseClient: supabase,
-    // Add other config as needed
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider config={{
@@ -152,15 +147,13 @@ const App = () => {
           }
         }
       }}>
-        <OrganisationProvider config={organisationConfig}>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </TooltipProvider>
-        </OrganisationProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

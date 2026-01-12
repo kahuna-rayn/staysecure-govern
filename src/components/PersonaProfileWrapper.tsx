@@ -1,9 +1,9 @@
 import React from 'react';
-import { useUserRole } from '@/hooks/useUserRole';
+import { OrganisationProvider, PersonaProfile } from 'staysecure-organisation';
 import { supabase } from '@/integrations/supabase/client';
-import { OrganisationPanel, OrganisationProvider } from 'staysecure-organisation';
+import { useUserRole } from '@/hooks/useUserRole';
 
-const SettingsPanel: React.FC = () => {
+export const PersonaProfileWrapper: React.FC = () => {
   const { hasAdminAccess, loading: roleLoading } = useUserRole();
 
   if (roleLoading) {
@@ -27,19 +27,11 @@ const SettingsPanel: React.FC = () => {
       canManageCertificates: hasAdminAccess,
       canManageProfile: hasAdminAccess,
     },
-    onNavigate: (tab: string) => console.log(`Navigated to ${tab}`),
-    onUserAction: (action: string, data?: any) => console.log(`User action: ${action}`, data),
   };
 
   return (
     <OrganisationProvider config={organisationConfig}>
-      <OrganisationPanel 
-        title="Organisation"
-        description="Manage users, roles, departments, and locations"
-        showAdminBadge={false}
-      />
+      <PersonaProfile />
     </OrganisationProvider>
   );
 };
-
-export default SettingsPanel;
