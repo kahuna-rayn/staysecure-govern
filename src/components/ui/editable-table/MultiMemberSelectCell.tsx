@@ -6,6 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Profile {
   id: string;
@@ -44,6 +54,11 @@ export function MultiMemberSelectCell({ breachTeamId, onUpdate }: MultiMemberSel
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; memberId: string | null; memberName: string }>({
+    open: false,
+    memberId: null,
+    memberName: '',
+  });
   
   // Form state for adding new member
   const [selectedUserId, setSelectedUserId] = useState<string>('');
@@ -167,21 +182,29 @@ export function MultiMemberSelectCell({ breachTeamId, onUpdate }: MultiMemberSel
     }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
+  const handleRemoveMember = (memberId: string, memberName: string) => {
+    setDeleteDialog({ open: true, memberId, memberName });
+  };
+
+  const handleRemoveMemberConfirm = async () => {
+    if (!deleteDialog.memberId) return;
+
     try {
       const { error } = await supabase
         .from('breach_team_members')
         .delete()
-        .eq('id', memberId);
+        .eq('id', deleteDialog.memberId);
 
       if (error) throw error;
 
       toast.success('Member removed successfully');
+      setDeleteDialog({ open: false, memberId: null, memberName: '' });
       fetchData();
       onUpdate();
     } catch (error: any) {
       console.error('Error removing member:', error);
       toast.error(error.message || 'Failed to remove member');
+      setDeleteDialog({ open: false, memberId: null, memberName: '' });
     }
   };
 
@@ -216,18 +239,18 @@ export function MultiMemberSelectCell({ breachTeamId, onUpdate }: MultiMemberSel
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-col gap-1.5">
         {members.map((member) => (
           <Badge
             key={member.id}
             variant={member.is_primary ? "default" : "secondary"}
-            className="relative group pr-6"
+            className="relative group pr-6 w-fit !text-white"
           >
-            {member.is_primary && <Star className="w-3 h-3 mr-1" />}
+            {member.is_primary && <Star className="w-3 h-3 mr-1 text-white" />}
             {member.profile?.full_name || 'Unknown User'}
             <button
-              onClick={() => handleRemoveMember(member.id)}
-              className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => handleRemoveMember(member.id, member.profile?.full_name || 'Unknown User')}
+              className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-white"
             >
               <X className="w-3 h-3" />
             </button>
@@ -239,7 +262,6 @@ export function MultiMemberSelectCell({ breachTeamId, onUpdate }: MultiMemberSel
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="h-8">
             <Plus className="w-3 h-3 mr-1" />
-            Add Member
           </Button>
         </DialogTrigger>
         <DialogContent>
@@ -291,6 +313,23 @@ export function MultiMemberSelectCell({ breachTeamId, onUpdate }: MultiMemberSel
           {members.some(m => m.is_primary) && ' (1 primary)'}
         </div>
       )}
+
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, memberId: open ? deleteDialog.memberId : null, memberName: open ? deleteDialog.memberName : '' })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Removal</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {deleteDialog.memberName} from this team? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveMemberConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

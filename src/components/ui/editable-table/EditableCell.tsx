@@ -223,16 +223,11 @@ export function EditableCell<T extends { id: string }>({
       return (
         <div 
           className={cn(
-            "whitespace-pre-wrap break-words text-sm leading-relaxed w-full overflow-hidden",
-            column.editable && "cursor-pointer hover:bg-muted/50"
+            "whitespace-pre-wrap break-words text-sm leading-relaxed w-full overflow-hidden min-h-[60px]",
+            column.editable && "cursor-pointer"
           )}
-          onClick={(e) => {
-            e.stopPropagation();
-            console.log('Textarea clicked for row:', (item as any).id, 'column:', column.key, 'editable:', column.editable);
-            if (column.editable) onEdit(String(displayValue));
-          }}
         >
-          {displayValue}
+          {displayValue || (column.editable ? <span className="text-muted-foreground italic">Click to edit...</span> : null)}
         </div>
       );
     }
@@ -254,24 +249,26 @@ export function EditableCell<T extends { id: string }>({
   return (
     <div 
       className={cn(
-        "p-3 h-full flex items-start w-full relative group",
-        column.editable && "cursor-pointer hover:bg-muted/50 border-2 border-transparent hover:border-primary/20 rounded-sm transition-all duration-200"
+        "p-3 h-full w-full relative group",
+        column.type === 'textarea' ? "flex flex-col" : "flex items-start",
+        column.editable && "cursor-pointer hover:bg-muted/50 border-2 border-transparent hover:border-primary/30 rounded-sm transition-all duration-200"
       )}
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         if (column.editable) {
           onEdit(String(displayValue));
         }
       }}
     >
       {column.editable && (
-        <div className="absolute top-1/2 right-2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
             <path d="m18.5 2.5 3 3L12 15l-4 1 1-4Z"/>
           </svg>
         </div>
       )}
-      <div className="w-full overflow-hidden">
+      <div className="w-full overflow-hidden flex-1">
         {cellContent()}
       </div>
     </div>

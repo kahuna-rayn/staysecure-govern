@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from '@/components/ui/use-toast';
 import { Loader2, X, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface AddHardwareDialogProps {
   isOpen: boolean;
@@ -22,6 +23,21 @@ const AddHardwareDialog: React.FC<AddHardwareDialogProps> = ({
 }) => {
   const { addHardwareItem, loading } = useInventory();
   const { profiles } = useUserProfiles();
+  
+  // Fetch locations for dropdown
+  const { data: locations } = useQuery({
+    queryKey: ['locations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('locations')
+        .select('id, name')
+        .eq('status', 'Active')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
   const [formData, setFormData] = useState({
     device_name: '',
     asset_type: '',
@@ -31,7 +47,7 @@ const AddHardwareDialog: React.FC<AddHardwareDialogProps> = ({
     os_edition: '',
     os_version: '',
     asset_owner: '',
-    asset_location: '',
+    location_id: '',
     asset_classification: '',
     status: 'Available',
     end_of_support_date: '',
@@ -47,7 +63,7 @@ const AddHardwareDialog: React.FC<AddHardwareDialogProps> = ({
       os_edition: '',
       os_version: '',
       asset_owner: '',
-      asset_location: '',
+      location_id: '',
       asset_classification: '',
       status: 'Available',
       end_of_support_date: '',
@@ -64,7 +80,7 @@ const AddHardwareDialog: React.FC<AddHardwareDialogProps> = ({
         model: formData.model || null,
         serial_number: formData.serial_number,
         asset_owner: formData.asset_owner || "Unassigned",
-        asset_location: formData.asset_location || null,
+        location_id: formData.location_id || null,
         asset_classification: formData.asset_classification || null,
         os_edition: formData.os_edition || null,
         os_version: formData.os_version || null,
@@ -98,7 +114,7 @@ const AddHardwareDialog: React.FC<AddHardwareDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Hardware Item</DialogTitle>
+          <DialogTitle>Add Hardware</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -193,13 +209,19 @@ const AddHardwareDialog: React.FC<AddHardwareDialogProps> = ({
               </Select>
             </div>
             <div>
-              <Label htmlFor="asset_location">Location</Label>
-              <Input
-                id="asset_location"
-                value={formData.asset_location}
-                onChange={(e) => setFormData({ ...formData, asset_location: e.target.value })}
-                placeholder="e.g., Office, Remote, Storage"
-              />
+              <Label htmlFor="location_id">Location</Label>
+              <Select value={formData.location_id} onValueChange={(value) => setFormData({ ...formData, location_id: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations?.map((location) => (
+                    <SelectItem key={location.id} value={location.id}>
+                      {location.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="asset_classification">Classification</Label>

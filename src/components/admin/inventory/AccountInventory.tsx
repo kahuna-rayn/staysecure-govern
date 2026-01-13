@@ -12,7 +12,7 @@ import { Plus, Users } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const AccountInventory: React.FC = () => {
-  const { accountInventory, addAccountItem, loading } = useInventory();
+  const { accountInventory, softwareInventory, addAccountItem, loading } = useInventory();
   const { profiles } = useUserProfiles();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState('');
@@ -20,15 +20,11 @@ const AccountInventory: React.FC = () => {
     full_name: '',
     username_email: '',
     software: '',
-    department: '',
-    role_account_type: '',
     data_class: '',
     approval_status: 'Not submitted',
     authorized_by: '',
     date_access_created: '',
     date_access_revoked: '',
-    created_by: '',
-    modified_by: '',
     date_column: '',
     status: 'Active',
   });
@@ -41,8 +37,6 @@ const AccountInventory: React.FC = () => {
         ...prev,
         full_name: selectedUser.full_name || '',
         username_email: selectedUser.email || selectedUser.username || '',
-        department: selectedUser.department || '',
-        role_account_type: selectedUser.role || '',
       }));
     }
   };
@@ -53,15 +47,11 @@ const AccountInventory: React.FC = () => {
       full_name: '',
       username_email: '',
       software: '',
-      department: '',
-      role_account_type: '',
       data_class: '',
       approval_status: 'Not submitted',
       authorized_by: '',
       date_access_created: '',
       date_access_revoked: '',
-      created_by: '',
-      modified_by: '',
       date_column: '',
       status: 'Active',
     });
@@ -116,7 +106,7 @@ const AccountInventory: React.FC = () => {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add Account Item</DialogTitle>
+              <DialogTitle>Add Account</DialogTitle>
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,9 +131,7 @@ const AccountInventory: React.FC = () => {
                   <div className="col-span-2 p-3 bg-gray-50 rounded-lg">
                     <h4 className="font-medium mb-2">Selected User Details:</h4>
                     <p><strong>Name:</strong> {formData.full_name}</p>
-                    <p><strong>Email/Username:</strong> {formData.username_email}</p>
-                    <p><strong>Department:</strong> {formData.department || 'Not specified'}</p>
-                    <p><strong>Role:</strong> {formData.role_account_type || 'Not specified'}</p>
+                    <p><strong>Username:</strong> {formData.username_email}</p>
                   </div>
                 )}
 
@@ -159,7 +147,7 @@ const AccountInventory: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="username_email">Username/Email *</Label>
+                  <Label htmlFor="username_email">Username *</Label>
                   <Input
                     id="username_email"
                     value={formData.username_email}
@@ -171,29 +159,21 @@ const AccountInventory: React.FC = () => {
                 </div>
                 <div>
                   <Label htmlFor="software">Software</Label>
-                  <Input
-                    id="software"
-                    value={formData.software}
-                    onChange={(e) => setFormData({ ...formData, software: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="department">Department</Label>
-                  <Input
-                    id="department"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    disabled={!!selectedUserId}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="role_account_type">Role/Account Type</Label>
-                  <Input
-                    id="role_account_type"
-                    value={formData.role_account_type}
-                    onChange={(e) => setFormData({ ...formData, role_account_type: e.target.value })}
-                    disabled={!!selectedUserId}
-                  />
+                  <Select value={formData.software} onValueChange={(value) => setFormData({ ...formData, software: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select software" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {softwareInventory
+                        .filter(software => software.status === 'Active' || !software.status)
+                        .map((software) => (
+                          <SelectItem key={software.id} value={software.software_name}>
+                            {software.software_name}
+                            {software.software_version && ` (${software.software_version})`}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="data_class">Data Class</Label>
@@ -225,11 +205,18 @@ const AccountInventory: React.FC = () => {
                 </div>
                 <div>
                   <Label htmlFor="authorized_by">Authorized By</Label>
-                  <Input
-                    id="authorized_by"
-                    value={formData.authorized_by}
-                    onChange={(e) => setFormData({ ...formData, authorized_by: e.target.value })}
-                  />
+                  <Select value={formData.authorized_by} onValueChange={(value) => setFormData({ ...formData, authorized_by: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a user" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {profiles.map((profile) => (
+                        <SelectItem key={profile.id} value={profile.id}>
+                          {profile.full_name || 'No name'} ({profile.email || profile.username || 'No email'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="date_access_created">Date Access Created</Label>
@@ -247,14 +234,6 @@ const AccountInventory: React.FC = () => {
                     type="date"
                     value={formData.date_access_revoked}
                     onChange={(e) => setFormData({ ...formData, date_access_revoked: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="created_by">Created By</Label>
-                  <Input
-                    id="created_by"
-                    value={formData.created_by}
-                    onChange={(e) => setFormData({ ...formData, created_by: e.target.value })}
                   />
                 </div>
                 <div>
@@ -297,10 +276,10 @@ const AccountInventory: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Full Name</TableHead>
-                <TableHead>Username/Email</TableHead>
+                <TableHead>Username</TableHead>
                 <TableHead>Software</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Role/Type</TableHead>
+                <TableHead>Date Created</TableHead>
+                <TableHead>Date Revoked</TableHead>
                 <TableHead>Data Class</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
@@ -311,8 +290,16 @@ const AccountInventory: React.FC = () => {
                   <TableCell className="font-medium">{item.full_name}</TableCell>
                   <TableCell>{item.username_email}</TableCell>
                   <TableCell>{item.software || 'Not specified'}</TableCell>
-                  <TableCell>{item.department || 'Not specified'}</TableCell>
-                  <TableCell>{item.role_account_type || 'Not specified'}</TableCell>
+                  <TableCell>
+                    {item.date_access_created 
+                      ? new Date(item.date_access_created).toLocaleDateString() 
+                      : 'Not specified'}
+                  </TableCell>
+                  <TableCell>
+                    {item.date_access_revoked 
+                      ? new Date(item.date_access_revoked).toLocaleDateString() 
+                      : 'N/A'}
+                  </TableCell>
                   <TableCell>{item.data_class || 'Not specified'}</TableCell>
                   <TableCell>
                     <Badge className={`${getStatusColor(item.status)} text-white`}>

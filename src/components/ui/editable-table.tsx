@@ -7,6 +7,16 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { EditableCell } from './editable-table/EditableCell';
 import { NewRowForm } from './editable-table/NewRowForm';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ColumnConfig {
   key: string;
@@ -60,6 +70,10 @@ export function EditableTable<T extends { id: string }>({
   const [isAdding, setIsAdding] = useState(false);
   const [newRowData, setNewRowData] = useState<Partial<T>>({});
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string | null }>({
+    open: false,
+    id: null,
+  });
 
   // Sort the data based on current sort configuration
   const sortedData = useMemo(() => {
@@ -199,25 +213,29 @@ export function EditableTable<T extends { id: string }>({
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!onDelete) return;
+  const handleDelete = (id: string) => {
+    setDeleteDialog({ open: true, id });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!onDelete || !deleteDialog.id) return;
     
-    if (confirm('Are you sure you want to delete this item?')) {
-      const result = await onDelete(id);
-      
-      if (result.success) {
-        toast({
-          title: "Deleted successfully",
-          description: "The item has been deleted.",
-        });
-      } else {
-        toast({
-          title: "Delete failed",
-          description: result.error || "Failed to delete the item.",
-          variant: "destructive",
-        });
-      }
+    const result = await onDelete(deleteDialog.id);
+    
+    if (result.success) {
+      toast({
+        title: "Deleted successfully",
+        description: "The item has been deleted.",
+      });
+    } else {
+      toast({
+        title: "Delete failed",
+        description: result.error || "Failed to delete the item.",
+        variant: "destructive",
+      });
     }
+    
+    setDeleteDialog({ open: false, id: null });
   };
 
   const handleAddRow = async () => {
@@ -341,7 +359,7 @@ export function EditableTable<T extends { id: string }>({
                         <Edit className="h-4 w-4" />
                       </Button>
                     )}
-                    {allowDelete && onDelete && (
+                    {allowDelete && onDelete && !(item as any).is_system && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -362,6 +380,23 @@ export function EditableTable<T extends { id: string }>({
           </tbody>
         </table>
       </div>
+
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, id: open ? deleteDialog.id : null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this item? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

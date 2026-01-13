@@ -41,11 +41,26 @@ const PhysicalLocationAccess: React.FC = () => {
     email: '',
     department: '',
     role_account_type: '',
-    location: '',
+    location_id: '',
     access_purpose: '',
     date_access_created: new Date().toISOString().split('T')[0],
     date_access_revoked: '',
     status: 'Active',
+  });
+
+  // Fetch locations for dropdown
+  const { data: locations } = useQuery({
+    queryKey: ['locations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('locations')
+        .select('id, name')
+        .eq('status', 'Active')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    },
   });
 
   const { data: locationAccess = [], refetch } = useQuery({
@@ -88,7 +103,7 @@ const PhysicalLocationAccess: React.FC = () => {
       email: '',
       department: '',
       role_account_type: '',
-      location: '',
+      location_id: '',
       access_purpose: '',
       date_access_created: new Date().toISOString().split('T')[0],
       date_access_revoked: '',
@@ -99,10 +114,18 @@ const PhysicalLocationAccess: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (!formData.location_id || !formData.access_purpose) {
+        throw new Error('Location and Access Purpose are required');
+      }
+
+      if (!selectedUserId) {
+        throw new Error('Please select a user');
+      }
+
       const insertData = {
         full_name: formData.full_name,
-        user_id: 'ae5c8c73-e0c3-4a86-9c0d-123456789abc', // Placeholder user ID
-        location_id: formData.location, // Assuming this is already a UUID
+        user_id: selectedUserId,
+        location_id: formData.location_id,
         access_purpose: formData.access_purpose,
         date_access_created: formData.date_access_created,
         date_access_revoked: formData.date_access_revoked || null,
@@ -179,8 +202,6 @@ const PhysicalLocationAccess: React.FC = () => {
                     <h4 className="font-medium mb-2">Selected User Details:</h4>
                     <p><strong>Name:</strong> {formData.full_name}</p>
                     <p><strong>Email:</strong> {formData.email}</p>
-                    <p><strong>Department:</strong> {formData.department || 'Not specified'}</p>
-                    <p><strong>Role:</strong> {formData.role_account_type || 'Not specified'}</p>
                   </div>
                 )}
 
@@ -207,32 +228,23 @@ const PhysicalLocationAccess: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="department">Department</Label>
-                  <Input
-                    id="department"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    disabled={!!selectedUserId}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="role_account_type">Role/Account Type</Label>
-                  <Input
-                    id="role_account_type"
-                    value={formData.role_account_type}
-                    onChange={(e) => setFormData({ ...formData, role_account_type: e.target.value })}
-                    disabled={!!selectedUserId}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="location">Location *</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="e.g., Building A - Floor 3, Server Room"
+                  <Label htmlFor="location_id">Location *</Label>
+                  <Select 
+                    value={formData.location_id} 
+                    onValueChange={(value) => setFormData({ ...formData, location_id: value })}
                     required
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations?.map((location) => (
+                        <SelectItem key={location.id} value={location.id}>
+                          {location.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="access_purpose">Access Purpose *</Label>
@@ -303,9 +315,6 @@ const PhysicalLocationAccess: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Full Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Role/Account Type</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Access Purpose</TableHead>
                 <TableHead>Date Created</TableHead>
@@ -317,9 +326,6 @@ const PhysicalLocationAccess: React.FC = () => {
               {locationAccess.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.full_name}</TableCell>
-                  <TableCell>{item.email}</TableCell>
-                  <TableCell>{item.department || 'Not specified'}</TableCell>
-                  <TableCell>{item.role_account_type || 'Not specified'}</TableCell>
                   <TableCell>{item.locations?.name || item.location}</TableCell>
                   <TableCell>{item.access_purpose}</TableCell>
                   <TableCell>{new Date(item.date_access_created).toLocaleDateString()}</TableCell>

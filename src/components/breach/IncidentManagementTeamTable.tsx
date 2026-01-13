@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { EditableTable } from '@/components/ui/editable-table';
 import { supabase } from '@/integrations/supabase/client';
 import { MultiMemberSelectCell } from '@/components/ui/editable-table/MultiMemberSelectCell';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface BreachTeamRow {
   id: string;
@@ -23,6 +24,7 @@ interface BreachTeamRow {
 const IncidentManagementTeamTable: React.FC = () => {
   const [rows, setRows] = useState<BreachTeamRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { hasAdminAccess } = useUserRole();
 
   const fetchRows = useCallback(async () => {
     setLoading(true);
@@ -45,12 +47,12 @@ const IncidentManagementTeamTable: React.FC = () => {
       
       const allowed: Partial<BreachTeamRow> = {};
       
-      // Always allow org_practice updates
-      if (Object.prototype.hasOwnProperty.call(updates, 'org_practice')) {
+      // Only allow org_practice updates for admins
+      if (hasAdminAccess && Object.prototype.hasOwnProperty.call(updates, 'org_practice')) {
         allowed.org_practice = updates.org_practice ?? null;
       }
       
-      // Only allow other fields for non-system rows
+      // Only allow other fields for non-system rows (if needed in future)
       if (!row?.is_system) {
         if (Object.prototype.hasOwnProperty.call(updates, 'team_role')) {
           allowed.team_role = updates.team_role || '';
@@ -102,6 +104,14 @@ const IncidentManagementTeamTable: React.FC = () => {
 
   const onCreate = async (newRow: Partial<BreachTeamRow>) => {
     try {
+      // Find the maximum sequence_id from existing rows
+      const maxSequence = rows.length > 0
+        ? Math.max(...rows.map(row => (row as any).sequence || 0))
+        : 0;
+      
+      // Set the new sequence_id to be one higher than the maximum
+      const nextSequence = maxSequence + 1;
+
       const { error } = await supabase
         .from('breach_management_team')
         .insert({
@@ -111,7 +121,8 @@ const IncidentManagementTeamTable: React.FC = () => {
           best_practice: newRow.best_practice || null,
           org_practice: newRow.org_practice || null,
           mandatory: false,
-          is_system: false
+          is_system: false,
+          sequence: nextSequence
         });
 
       if (error) throw error;
@@ -126,11 +137,11 @@ const IncidentManagementTeamTable: React.FC = () => {
     }
   };
 
-  const renderMemberCell = (item: BreachTeamRow) => {
+  const renderMemberCell = useCallback((item: BreachTeamRow) => {
     return <MultiMemberSelectCell breachTeamId={item.id} onUpdate={fetchRows} />;
-  };
+  }, [fetchRows]);
 
-  const columns = [
+  const columns = useMemo(() => [
     { 
       key: 'team_role', 
       header: 'Team Role', 
@@ -146,21 +157,22 @@ const IncidentManagementTeamTable: React.FC = () => {
       key: 'activity', 
       header: 'Activity', 
       editable: false, 
-      sortable: true 
+      sortable: true,
+      className: 'max-w-[400px]'
     },
     { 
       key: 'best_practice', 
       header: 'Best Practice', 
       type: 'textarea' as const, 
       editable: false, 
-      className: 'max-w-[420px]' 
+      className: 'max-w-[350px]' 
     },
     { 
       key: 'org_practice', 
       header: 'Your Organization Practice', 
       type: 'textarea' as const, 
-      editable: true, 
-      className: 'max-w-[420px]' 
+      editable: hasAdminAccess, 
+      className: 'max-w-[350px]' 
     },
     { 
       key: 'member', 
@@ -168,12 +180,9 @@ const IncidentManagementTeamTable: React.FC = () => {
       type: 'custom' as const, 
       editable: false,
       render: renderMemberCell,
-      className: 'min-w-[300px]'
+      className: 'max-w-[188px]'
     } as any,
-  ];
-  
-  // Force fresh columns object to prevent mutations
-  console.log('Fresh columns before passing to table:', JSON.parse(JSON.stringify(columns)));
+  ], [hasAdminAccess, renderMemberCell]);
 
   if (loading) return <div>Loading team...</div>;
 
