@@ -198,7 +198,6 @@ const DocumentManagement: React.FC<DocumentManagementProps> = ({ onNavigateToAss
           <DialogTrigger asChild>
             <Button size="icon" className="flex items-center gap-2">
               <Plus className="h-4 w-4 mr-2" />
-              Create Document
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
