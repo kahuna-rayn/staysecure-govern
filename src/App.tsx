@@ -12,7 +12,7 @@ import AdminPanel from "@/components/AdminPanel";
 import InventoryPanel from "@/components/InventoryPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import Dashboard from "@/components/Dashboard";
-import KnowledgePanel from "@/components/KnowledgePanel";
+import { KnowledgePanel } from 'staysecure-organisation';
 import CompliancePanel from "@/components/CompliancePanel";
 import BreachManagementPanel from "@/components/BreachManagementPanel";
 import NotFound from "./pages/NotFound";
