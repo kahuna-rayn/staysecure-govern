@@ -107,7 +107,7 @@ const EnhancedMetrics: React.FC = () => {
   const userRoleMap = new Map();
   
   allUserDepartments.forEach(ud => {
-    userDepartmentMap.set(ud.user_id, ud.departments?.name || 'Unknown Department');
+    userDepartmentMap.set(ud.user_id, ud.departments?.name || 'No Department');
   });
   
   allUserRoles.forEach(ur => {
@@ -117,7 +117,7 @@ const EnhancedMetrics: React.FC = () => {
   // Enhance profiles with department and role data from junction tables
   const enhancedProfiles = profiles.map(profile => ({
     ...profile,
-    primary_department: userDepartmentMap.get(profile.id) || profile.department || 'Unknown Department',
+    primary_department: userDepartmentMap.get(profile.id) || profile.department || 'No Department',
     primary_role: userRoleMap.get(profile.id) || 'Unknown Role'
   }));
 
@@ -133,7 +133,7 @@ const EnhancedMetrics: React.FC = () => {
     }
     userDeptMap.get(ud.user_id).push({
       is_primary: ud.is_primary,
-      department_name: ud.departments?.name || 'Unknown Department',
+      department_name: ud.departments?.name || 'No Department',
       ...ud
     });
   });

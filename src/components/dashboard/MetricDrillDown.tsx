@@ -69,7 +69,7 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
         
         const deptMap = new Map();
         data?.forEach(item => {
-          deptMap.set(item.user_id, item.departments?.name || 'Unknown Department');
+          deptMap.set(item.user_id, item.departments?.name || 'No Department');
         });
         setDepartmentData(deptMap);
       } catch (error) {
@@ -555,7 +555,7 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
 
     // First, group all users in the current location by department
     filteredProfiles.forEach(profile => {
-      const deptName = departmentData.get(profile.id) || profile.department || 'Unknown Department';
+      const deptName = departmentData.get(profile.id) || profile.department || 'No Department';
       
       if (!departmentGroups.has(deptName)) {
         departmentGroups.set(deptName, []);
@@ -569,7 +569,7 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
     uniqueRelevantUserIds.forEach(userId => {
       const userProfile = filteredProfiles.find(p => p.id === userId);
       if (userProfile) {
-        const deptName = departmentData.get(userId) || userProfile.department || 'Unknown Department';
+        const deptName = departmentData.get(userId) || userProfile.department || 'No Department';
         if (!relevantDepartmentGroups.has(deptName)) {
           relevantDepartmentGroups.set(deptName, []);
         }
@@ -602,14 +602,11 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
             departmentValue = relevantProfilesInDept.length;
           }
           
-          // Use a better display name for departments
-          const displayName = department === 'Unknown Department' ? 'No Assigned Department' : department;
-          
           return (
             <Card key={department} className="cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => onDrillDown(currentLevel.level + 1, allProfilesInDept, department, 'department', departmentValue)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{displayName}</CardTitle>
+                <CardTitle className="text-sm font-medium">{department}</CardTitle>
                 <Building className="h-4 w-4" />
               </CardHeader>
               <CardContent>
