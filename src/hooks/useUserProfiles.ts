@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from 'staysecure-auth';
+import debug from '@/utils/debug';
 import type { User } from '@supabase/supabase-js';
 
 export interface UserProfile {
@@ -119,34 +120,34 @@ export const useUserProfiles = () => {
   };
 
   const updateProfile = async (profileId: string, updates: Partial<UserProfile>) => {
-    console.log('🔍 updateProfile - called with profileId:', profileId);
-    console.log('🔍 updateProfile - updates object:', updates);
-    console.log('🔍 updateProfile - updates.location_id:', updates.location_id);
-    console.log('🔍 updateProfile - updates.location:', updates.location);
+    debug.log('🔍 updateProfile - called with profileId:', profileId);
+    debug.log('🔍 updateProfile - updates object:', updates);
+    debug.log('🔍 updateProfile - updates.location_id:', updates.location_id);
+    debug.log('🔍 updateProfile - updates.location:', updates.location);
     
     try {
-      console.log('🔍 updateProfile - calling Supabase update...');
+      debug.log('🔍 updateProfile - calling Supabase update...');
       const { data, error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', profileId)
         .select();
 
-      console.log('🔍 updateProfile - Supabase response:', { data, error });
+      debug.log('🔍 updateProfile - Supabase response:', { data, error });
       
       if (error) {
         console.error('❌ updateProfile - Supabase error:', error);
         throw error;
       }
 
-      console.log('🔍 updateProfile - Update successful, updating local state...');
+      debug.log('🔍 updateProfile - Update successful, updating local state...');
       
       // Update local state
       setProfiles(prev => prev.map(profile => 
         profile.id === profileId ? { ...profile, ...updates } : profile
       ));
       
-      console.log('🔍 updateProfile - Local state updated, returning success');
+      debug.log('🔍 updateProfile - Local state updated, returning success');
       return { success: true };
     } catch (err) {
       console.error('❌ updateProfile - Error:', err);

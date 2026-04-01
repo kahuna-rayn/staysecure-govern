@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import debug from '@/utils/debug';
 
 export interface UserDepartment {
   id: string;
@@ -25,7 +26,7 @@ export const useUserDepartments = (userId?: string) => {
     
     try {
       setIsLoading(true);
-      console.log('useUserDepartments: Fetching departments for user:', userId);
+      debug.log('useUserDepartments: Fetching departments for user:', userId);
       
       const { data, error } = await supabase
         .from('user_departments')
@@ -67,7 +68,7 @@ export const useUserDepartments = (userId?: string) => {
   const addDepartment = async (params: { userId: string; departmentId: string; isPrimary: boolean; pairingId?: string; assignedBy?: string }) => {
     try {
       setIsAddingDepartment(true);
-      console.log('useUserDepartments: addDepartment called with params:', params);
+      debug.log('useUserDepartments: addDepartment called with params:', params);
       
       const { error } = await supabase
         .from('user_departments')
@@ -79,10 +80,10 @@ export const useUserDepartments = (userId?: string) => {
           assigned_by: params.assignedBy
         }]);
 
-      console.log('useUserDepartments: addDepartment insert error:', error);
+      debug.log('useUserDepartments: addDepartment insert error:', error);
       if (error) throw error;
       
-      console.log('useUserDepartments: Department added successfully, refetching...');
+      debug.log('useUserDepartments: Department added successfully, refetching...');
       await fetchUserDepartments();
     } catch (err) {
       console.error('useUserDepartments: addDepartment error:', err);

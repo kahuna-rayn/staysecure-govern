@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import debug from '@/utils/debug';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -70,7 +71,7 @@ const CompliancePanel: React.FC = () => {
     const fetchPeriodicReviews = async () => {
       try {
         // Fetch periodic reviews first
-        console.log('Fetching periodic reviews...');
+        debug.log('Fetching periodic reviews...');
         const { data, error } = await supabase
           .from('periodic_reviews')
           .select('*')
@@ -81,7 +82,7 @@ const CompliancePanel: React.FC = () => {
           throw error;
         }
 
-        console.log('Raw data:', data);
+        debug.log('Raw data:', data);
 
         // Get unique user IDs for fetching names
         const userIds = [...new Set([
@@ -112,8 +113,8 @@ const CompliancePanel: React.FC = () => {
           approved_by_name: review.approved_by ? (userNames[review.approved_by] || 'Unknown') : 'Unknown',
         }));
 
-        console.log('Processed data:', reviewsWithNames);
-        console.log('Sample item structure:', reviewsWithNames[0]);
+        debug.log('Processed data:', reviewsWithNames);
+        debug.log('Sample item structure:', reviewsWithNames[0]);
 
         setPeriodicReviews(reviewsWithNames);
       } catch (error) {

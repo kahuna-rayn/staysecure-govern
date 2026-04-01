@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import debug from '@/utils/debug';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
@@ -71,19 +72,19 @@ const HIBChecklist: React.FC = () => {
   const handleUpdateClause = async (id: string, updates: Partial<HIBClause>) => {
     if (!user) return { success: false, error: 'User not authenticated' };
 
-    console.log('handleUpdateClause called with:', { id, updates, userId: user.id });
+    debug.log('handleUpdateClause called with:', { id, updates, userId: user.id });
 
     // Update local state immediately
     setClauses(prev => {
       const updated = prev.map(clause => 
         clause.id === id ? { ...clause, ...updates } : clause
       );
-      console.log('Local state updated:', updated.find(c => c.id === id));
+      debug.log('Local state updated:', updated.find(c => c.id === id));
       return updated;
     });
 
     const result = await updateHIBClause(user.id, id, updates);
-    console.log('Database update result:', result);
+    debug.log('Database update result:', result);
     
     if (!result.success) {
       // Revert local state if database update failed

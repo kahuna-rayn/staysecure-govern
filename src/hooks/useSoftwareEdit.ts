@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import debug from '@/utils/debug';
 
 interface EditingState {
   itemIndex: number;
@@ -38,7 +39,7 @@ export const useSoftwareEdit = (profileId: string, software: any[]) => {
     const item = software[itemIndex];
     
     try {
-      console.log('Saving software field edit:', { field, value: editValue, item });
+      debug.log('Saving software field edit:', { field, value: editValue, item });
 
       const { supabase } = await import('@/integrations/supabase/client');
       const queryResult = await (supabase as any)

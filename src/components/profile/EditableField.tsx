@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import debug from '@/utils/debug';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -195,7 +196,7 @@ const EditableField: React.FC<EditableFieldProps> = ({
       <Button
         size="sm"
         variant="ghost"
-        onClick={() => { console.log('Edit icon clicked for field:', fieldKey); onEdit(fieldKey); }}
+        onClick={() => { debug.log('Edit icon clicked for field:', fieldKey); onEdit(fieldKey); }}
         className="h-6 w-6 p-0"
       >
         <Edit className="h-3 w-3" />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import debug from '@/utils/debug';
 
 export interface UserHardware {
   id: string;
@@ -74,7 +75,7 @@ export const useUserAssets = (userId?: string) => {
         finalSoftwareData = fallbackQuery.data || [];
         finalSoftwareError = fallbackQuery.error;
       } catch (err) {
-        console.warn('Software query failed:', err);
+        debug.warn('Software query failed:', err);
         finalSoftwareData = [];
       }
       
@@ -86,7 +87,7 @@ export const useUserAssets = (userId?: string) => {
         .order('created_at', { ascending: false });
 
       if (hardwareQuery.error) throw hardwareQuery.error;
-      if (finalSoftwareError) console.warn('Software query error:', finalSoftwareError);
+      if (finalSoftwareError) debug.warn('Software query error:', finalSoftwareError);
       if (certificatesQuery.error) throw certificatesQuery.error;
 
       // Transform hardware data from hardware_inventory table

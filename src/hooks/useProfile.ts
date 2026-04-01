@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from 'staysecure-auth';
+import debug from '@/utils/debug';
 
 export interface Profile {
   id: string;
@@ -31,7 +32,7 @@ export interface Profile {
 
 export const useProfile = (profileId?: string) => {
   const { user } = useAuth();
-  console.log('useProfile hook: profileId:', profileId, 'user:', user);
+  debug.log('useProfile hook: profileId:', profileId, 'user:', user);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export const useProfile = (profileId?: string) => {
   }, [profileId, user]);
 
   const fetchProfile = async (id: string) => {
-    console.log('fetchProfile called with id:', id);
+    debug.log('fetchProfile called with id:', id);
     try {
       setLoading(true);
       
@@ -68,7 +69,7 @@ export const useProfile = (profileId?: string) => {
         .maybeSingle();
 
       if (roleError) {
-        console.warn('Error fetching user role:', roleError);
+        debug.warn('Error fetching user role:', roleError);
       }
 
       // Get email from auth user
@@ -81,7 +82,7 @@ export const useProfile = (profileId?: string) => {
         email: userEmail
       };
 
-      console.log('Fresh profile data from Supabase:', combinedData);
+      debug.log('Fresh profile data from Supabase:', combinedData);
       setProfile(combinedData);
     } catch (error: any) {
       setError(error.message);

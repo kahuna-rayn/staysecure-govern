@@ -1,4 +1,5 @@
 
+import debug from '@/utils/debug';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -94,7 +95,7 @@ const AppContent = () => {
   }
 
   if (!user) {
-    console.log('[AppContent] Rendering LoginForm with displayName:', clientConfig?.displayName, 'clientConfig:', clientConfig);
+    debug.log('[AppContent] Rendering LoginForm with displayName:', clientConfig?.displayName, 'clientConfig:', clientConfig);
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md relative">

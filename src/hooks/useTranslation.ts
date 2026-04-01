@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import debug from '@/utils/debug';
 import { useToast } from '@/hooks/use-toast';
 
 interface TranslationRequest {
@@ -25,20 +26,20 @@ export const useTranslation = () => {
     setLoading(true);
     
     try {
-      console.log('=== TRANSLATION HOOK DEBUG START ===');
-      console.log('Translation request:', request);
+      debug.log('=== TRANSLATION HOOK DEBUG START ===');
+      debug.log('Translation request:', request);
       
       toast({
         title: "Starting Translation",
         description: `Translating lesson to ${request.targetLanguage}...`,
       });
 
-      console.log('Invoking translate-lesson function...');
+      debug.log('Invoking translate-lesson function...');
       const { data, error } = await supabase.functions.invoke('translate-lesson', {
         body: request,
       });
 
-      console.log('Function invocation result:', { data, error });
+      debug.log('Function invocation result:', { data, error });
 
       if (error) {
         console.error('Function invocation error:', error);
@@ -50,8 +51,8 @@ export const useTranslation = () => {
         throw new Error(data.error || 'Translation failed');
       }
 
-      console.log('Translation successful:', data);
-      console.log('=== TRANSLATION HOOK DEBUG END ===');
+      debug.log('Translation successful:', data);
+      debug.log('=== TRANSLATION HOOK DEBUG END ===');
 
       toast({
         title: "Translation Complete",
@@ -61,7 +62,7 @@ export const useTranslation = () => {
       return { success: true, data: data.translation };
     } catch (error: any) {
       console.error('Translation error:', error);
-      console.log('=== TRANSLATION HOOK DEBUG END (ERROR) ===');
+      debug.log('=== TRANSLATION HOOK DEBUG END (ERROR) ===');
       toast({
         title: "Translation Failed",
         description: error.message || 'Failed to translate lesson',

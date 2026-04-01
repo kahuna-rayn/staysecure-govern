@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import debug from '@/utils/debug';
 import { useAuth } from 'staysecure-auth';
 import { UserAnswerResponse, UserBehaviorAnalytics, LessonSession } from '@/types/flowchart';
 import { LessonAnswer } from '@/types/lesson';
@@ -103,7 +104,7 @@ export const useBehaviorTracking = (lessonId: string) => {
       if (error) {
         console.error('Error tracking lesson completion:', error);
       } else {
-        console.log('Lesson completion tracked successfully');
+        debug.log('Lesson completion tracked successfully');
       }
     } catch (error) {
       console.error('Error saving behavior analytics:', error);

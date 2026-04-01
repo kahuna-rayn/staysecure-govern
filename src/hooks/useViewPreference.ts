@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import debug from '@/utils/debug';
 
 type ViewMode = 'cards' | 'list';
 
@@ -17,7 +18,7 @@ export const useViewPreference = (key: string, defaultValue: ViewMode = 'cards')
     try {
       localStorage.setItem(`viewPreference_${key}`, viewMode);
     } catch (error) {
-      console.warn('Failed to save view preference:', error);
+      debug.warn('Failed to save view preference:', error);
     }
   }, [key, viewMode]);
 

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import debug from '@/utils/debug';
 
 interface ProgressAnalyticsData {
   totalLearners: number;
@@ -41,14 +42,14 @@ export const useProgressAnalytics = () => {
         ['super_admin', 'client_admin', 'admin'].includes(role.role)
       );
 
-      console.log('🔍 Admin Check Debug:', {
+      debug.log('🔍 Admin Check Debug:', {
         userId: user.id,
         userRoles: userRoles?.map(r => r.role),
         hasAdminRole
       });
 
       if (!hasAdminRole) {
-        console.log('🚫 User is not admin, returning empty analytics data');
+        debug.log('🚫 User is not admin, returning empty analytics data');
         // Return empty data for non-admin users
         return {
           totalLearners: 0,
@@ -60,14 +61,14 @@ export const useProgressAnalytics = () => {
         };
       }
 
-      console.log('✅ User is admin, proceeding with analytics queries');
+      debug.log('✅ User is admin, proceeding with analytics queries');
       
       // Get total learners
       const { count: totalLearners, error: totalLearnersError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
       
-      console.log('📊 Total Learners Query:', { totalLearners, totalLearnersError });
+      debug.log('📊 Total Learners Query:', { totalLearners, totalLearnersError });
 
       // Get active lessons
       const { count: activeLessons } = await supabase
@@ -77,7 +78,7 @@ export const useProgressAnalytics = () => {
 
       // Get lesson progress data for recent activity (last 7 days)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      console.log('🔍 Querying user_lesson_progress with date filter:', sevenDaysAgo);
+      debug.log('🔍 Querying user_lesson_progress with date filter:', sevenDaysAgo);
       
       const { data: allProgress, error: allProgressError } = await supabase
         .from('user_lesson_progress')
@@ -85,7 +86,7 @@ export const useProgressAnalytics = () => {
         .not('completed_at', 'is', null)
         .gte('completed_at', sevenDaysAgo);
 
-      console.log('🔍 Progress Analytics Debug:', {
+      debug.log('🔍 Progress Analytics Debug:', {
         allProgressCount: allProgress?.length || 0,
         allProgressError: allProgressError ? {
           message: allProgressError.message,
@@ -102,7 +103,7 @@ export const useProgressAnalytics = () => {
         .select('user_id, completed_at, lessons(estimated_duration)')
         .gte('completed_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
       
-      console.log('📊 Progress Data Query:', {
+      debug.log('📊 Progress Data Query:', {
         progressDataCount: progressData?.length || 0,
         progressDataError: progressDataError ? {
           message: progressDataError.message,
@@ -169,7 +170,7 @@ export const useProgressAnalytics = () => {
         .sort((a, b) => a.title.localeCompare(b.title)) // Sort alphabetically
         .slice(0, 10); // Show top 10 lessons
 
-      console.log('📊 Lesson Completion Rates Debug:', {
+      debug.log('📊 Lesson Completion Rates Debug:', {
         totalLessonsWithProgress: lessonProgressMap.size,
         lessonCompletionRates: lessonCompletionRates.map(lesson => ({
           title: lesson.title,

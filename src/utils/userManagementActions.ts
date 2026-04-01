@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import debug from '@/utils/debug';
 import { toast } from '@/components/ui/use-toast';
 import type { UserProfile } from '@/hooks/useUserProfiles';
 import type { NewUser } from '@/hooks/useUserManagement';
@@ -32,7 +33,7 @@ export const handleCreateUser = async (
   onSuccess: () => void
 ) => {
   try {
-    console.log('Creating user with email:', newUser.email);
+    debug.log('Creating user with email:', newUser.email);
     
     // Use Edge Function to create user without affecting current session
     const { data, error } = await supabase.functions.invoke('create-user', {
@@ -52,7 +53,7 @@ export const handleCreateUser = async (
       }
     });
 
-    console.log('User creation result:', data, error);
+    debug.log('User creation result:', data, error);
     if (error) throw error;
     if (data.error) throw new Error(data.error);
 

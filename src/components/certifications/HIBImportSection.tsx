@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import debug from '@/utils/debug';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, FileText } from 'lucide-react';
@@ -15,15 +16,15 @@ interface HIBImportSectionProps {
 const HIBImportSection: React.FC<HIBImportSectionProps> = ({ onImport, onClose }) => {
   const handleImport = async (file: File) => {
     try {
-      console.log('Starting import process for file:', file.name);
+      debug.log('Starting import process for file:', file.name);
       const text = await file.text();
-      console.log('File content loaded, length:', text.length);
+      debug.log('File content loaded, length:', text.length);
       
       Papa.parse(text, {
         header: true,
         skipEmptyLines: true,
         complete: async (results) => {
-          console.log('Parse results:', results);
+          debug.log('Parse results:', results);
           const data = results.data as any[];
           
           if (data.length === 0) {
@@ -35,8 +36,8 @@ const HIBImportSection: React.FC<HIBImportSectionProps> = ({ onImport, onClose }
             return;
           }
 
-          console.log('Parsed data:', data);
-          console.log('First row keys:', Object.keys(data[0] || {}));
+          debug.log('Parsed data:', data);
+          debug.log('First row keys:', Object.keys(data[0] || {}));
 
           const importedClauses: HIBClause[] = data
             .filter(row => {
@@ -46,7 +47,7 @@ const HIBImportSection: React.FC<HIBImportSectionProps> = ({ onImport, onClose }
               return hasContent;
             })
             .map((row, index) => {
-              console.log(`Processing row ${index + 1}:`, row);
+              debug.log(`Processing row ${index + 1}:`, row);
               
               const hibClauseValue = row['HIB Clause'] || row['hib_clause'] || row['Clause'] || '';
               const hibClauseNumber = hibClauseValue ? parseInt(hibClauseValue.toString(), 10) : index + 1;
@@ -68,7 +69,7 @@ const HIBImportSection: React.FC<HIBImportSectionProps> = ({ onImport, onClose }
               };
             });
 
-          console.log('Imported clauses:', importedClauses);
+          debug.log('Imported clauses:', importedClauses);
 
           if (importedClauses.length === 0) {
             toast({
@@ -124,7 +125,7 @@ const HIBImportSection: React.FC<HIBImportSectionProps> = ({ onImport, onClose }
         return;
       }
       
-      console.log('File selected for import:', file.name, file.type);
+      debug.log('File selected for import:', file.name, file.type);
       handleImport(file);
     }
   }, [handleImport]);

@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import debug from '@/utils/debug';
 import { CLIENT_CONFIGS } from '@/config/clients';
 
 // Helper to get current client ID from window location or stored session
@@ -229,7 +230,7 @@ const getSupabaseClient = (): SupabaseClient<Database> => {
     // Cache it
     clientCache.set(clientId, client);
     
-    console.log('[supabase client] Successfully created client for:', clientId, 'URL:', supabaseUrl);
+    debug.log('[supabase client] Successfully created client for:', clientId, 'URL:', supabaseUrl);
     
     return client;
   } catch (error: any) {

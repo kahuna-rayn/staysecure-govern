@@ -1,5 +1,6 @@
 
 import React from 'react';
+import debug from '@/utils/debug';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,7 +54,7 @@ export function EditableCell<T extends { id: string }>({
 
   // Debug: Check if column object is being mutated
   if (column.key === 'org_practice') {
-    console.log('org_practice column object for row', (item as any).id, ':', column, 'reference:', column === column);
+    debug.log('org_practice column object for row', (item as any).id, ':', column, 'reference:', column === column);
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -219,7 +220,7 @@ export function EditableCell<T extends { id: string }>({
     }
 
     if (column.type === 'textarea') {
-      console.log('Rendering textarea for row:', (item as any).id, 'column:', column.key, 'editable:', column.editable);
+      debug.log('Rendering textarea for row:', (item as any).id, 'column:', column.key, 'editable:', column.editable);
       return (
         <div 
           className={cn(

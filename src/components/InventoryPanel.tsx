@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import debug from '@/utils/debug';
 import { useLocation } from 'react-router-dom';
 import { useUserProfiles } from '@/hooks/useUserProfiles';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -47,7 +48,7 @@ const InventoryPanel: React.FC = () => {
   const totalUsers = profiles.length;
 
   const handleNavigateToImport = () => {
-    console.log('Navigating to import tab');
+    debug.log('Navigating to import tab');
     setActiveTab('import');
   };
 

@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import debug from '@/utils/debug';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -878,7 +879,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
       return;
     }
     
-    console.log('Metric clicked:', metricId, 'profiles:', profiles.length);
+    debug.log('Metric clicked:', metricId, 'profiles:', profiles.length);
     setSelectedMetric(metricId);
     setDrillDownPath([{
       level: 1,
@@ -930,7 +931,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
   };
 
   const handleAddNewAsset = () => {
-    console.log('Add new asset clicked');
+    debug.log('Add new asset clicked');
     if (onNavigateToAssets) {
       onNavigateToAssets();
     } else {

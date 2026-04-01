@@ -1,4 +1,5 @@
 import React from 'react';
+import debug from '@/utils/debug';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import { OrganisationPanel, OrganisationProvider } from 'staysecure-organisation';
@@ -27,8 +28,8 @@ const SettingsPanel: React.FC = () => {
       canManageCertificates: hasAdminAccess,
       canManageProfile: hasAdminAccess,
     },
-    onNavigate: (tab: string) => console.log(`Navigated to ${tab}`),
-    onUserAction: (action: string, data?: any) => console.log(`User action: ${action}`, data),
+    onNavigate: (tab: string) => debug.log(`Navigated to ${tab}`),
+    onUserAction: (action: string, data?: any) => debug.log(`User action: ${action}`, data),
   };
 
   return (

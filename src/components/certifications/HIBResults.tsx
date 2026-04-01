@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import debug from '@/utils/debug';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SortableTable, SortableTableHeader, SortableTableBody, SortableTableRow, SortableTableHead, SortableTableCell } from '@/components/ui/sortable-table';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +46,7 @@ const HIBResults: React.FC = () => {
     if (!user) return;
 
     try {
-      console.log('Calculating HIB results for user:', user.id);
+      debug.log('Calculating HIB results for user:', user.id);
       
       // Fetch HIB checklist data
       const { data, error } = await supabase
@@ -55,10 +56,10 @@ const HIBResults: React.FC = () => {
 
       if (error) throw error;
 
-      console.log('HIB checklist data loaded:', data);
+      debug.log('HIB checklist data loaded:', data);
 
       if (!data || data.length === 0) {
-        console.log('No HIB checklist data found');
+        debug.log('No HIB checklist data found');
         setResults([]);
         setSortedResults([]);
         setOverallStats({ total: 0, implemented: 0, notImplemented: 0 });
@@ -73,7 +74,7 @@ const HIBResults: React.FC = () => {
         sectionNumber: item.section_number
       }));
       
-      console.log('Mapped clauses:', clauses);
+      debug.log('Mapped clauses:', clauses);
       
       // Group clauses by HIB Section
       const sectionGroups = clauses.reduce((acc, clause) => {
@@ -84,7 +85,7 @@ const HIBResults: React.FC = () => {
         return acc;
       }, {} as Record<string, HIBResultsClause[]>);
 
-      console.log('Section groups:', sectionGroups);
+      debug.log('Section groups:', sectionGroups);
 
       const sectionResults: ResultSection[] = Object.entries(sectionGroups).map(([sectionName, sectionClauses]) => {
         const total = sectionClauses.length;
@@ -94,7 +95,7 @@ const HIBResults: React.FC = () => {
           c.implementationStatus === 'Yes' || c.implementationStatus === 'Partially'
         ).length;
         
-        console.log(`Section ${sectionName}: total=${total}, implemented=${implementedCount}`);
+        debug.log(`Section ${sectionName}: total=${total}, implemented=${implementedCount}`);
         
         // Not Implemented = Total - Implemented
         const notImplemented = total - implementedCount;
@@ -138,7 +139,7 @@ const HIBResults: React.FC = () => {
         return a.section.localeCompare(b.section);
       });
 
-      console.log('Calculated section results:', sectionResults);
+      debug.log('Calculated section results:', sectionResults);
 
       setResults(sectionResults);
       setSortedResults(sectionResults);
@@ -154,7 +155,7 @@ const HIBResults: React.FC = () => {
         notImplemented: totalNotImplemented
       };
       
-      console.log('Overall stats:', newOverallStats);
+      debug.log('Overall stats:', newOverallStats);
       
       setOverallStats(newOverallStats);
 
@@ -162,7 +163,7 @@ const HIBResults: React.FC = () => {
       const finalOverallResult = sectionResults.every(section => section.result === 'Pass') ? 'Pass' : 'Fail';
       setOverallResult(finalOverallResult);
 
-      console.log('Final overall result:', finalOverallResult);
+      debug.log('Final overall result:', finalOverallResult);
 
       // Save results to database
       await saveResultsToDatabase(sectionResults);
@@ -206,7 +207,7 @@ const HIBResults: React.FC = () => {
 
       if (error) throw error;
 
-      console.log('HIB results saved to database successfully');
+      debug.log('HIB results saved to database successfully');
     } catch (error) {
       console.error('Error saving results to database:', error);
       toast({

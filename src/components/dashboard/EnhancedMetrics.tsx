@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import debug from '@/utils/debug';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +39,7 @@ interface MetricDefinition {
 }
 
 const EnhancedMetrics: React.FC = () => {
-  console.log('=== EnhancedMetrics component rendering ===');
+  debug.log('=== EnhancedMetrics component rendering ===');
   
   const { profiles } = useUserProfiles();
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
@@ -50,12 +51,12 @@ const EnhancedMetrics: React.FC = () => {
   // Fetch user departments directly with useEffect
   React.useEffect(() => {
     const fetchDepartments = async () => {
-      console.log('=== Starting department fetch ===');
+      debug.log('=== Starting department fetch ===');
       
       try {
         // Check authentication first
         const { data: { user } } = await supabase.auth.getUser();
-        console.log('Current user:', user?.id);
+        debug.log('Current user:', user?.id);
         
         // Fetch user departments
         const { data, error } = await supabase
@@ -72,7 +73,7 @@ const EnhancedMetrics: React.FC = () => {
           return;
         }
         
-        console.log('Successfully fetched user departments:', data);
+        debug.log('Successfully fetched user departments:', data);
         setAllUserDepartments(data || []);
       } catch (err) {
         console.error('Exception fetching departments:', err);
@@ -82,7 +83,7 @@ const EnhancedMetrics: React.FC = () => {
     fetchDepartments();
   }, []);
 
-  console.log('=== allUserDepartments state ===', allUserDepartments);
+  debug.log('=== allUserDepartments state ===', allUserDepartments);
 
   const { data: allUserRoles = [] } = useQuery({
     queryKey: ['all-user-roles'],
@@ -263,7 +264,7 @@ const EnhancedMetrics: React.FC = () => {
   ];
 
   const handleMetricClick = (metricId: string) => {
-    console.log('Metric clicked:', metricId, 'profiles:', enhancedProfiles.length);
+    debug.log('Metric clicked:', metricId, 'profiles:', enhancedProfiles.length);
     setSelectedMetric(metricId);
     setDrillDownPath([{
       level: 1,
