@@ -54,23 +54,28 @@ const AppContentRouter = () => {
     }
   }, [location]);
 
+  const dashboardContent = (
+    <div className="container mx-auto py-6 px-4 max-w-6xl">
+      {currentView === 'dashboard' && <Dashboard />}
+      {currentView === 'persona' && <PersonaProfileWrapper />}
+      {currentView === 'compliance' && <CompliancePanel />}
+      {currentView === 'inventory' && <InventoryPanel />}
+      {currentView === 'breach-management' && <BreachManagementPanel />}
+      {currentView === 'settings' && <SettingsPanel />}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation currentView={currentView} onViewChange={setCurrentView} />
       
       <Routes>
-        <Route path="/" element={
-          <div className="container mx-auto py-6 px-4 max-w-6xl">
-            {currentView === 'dashboard' && <Dashboard />}
-            {currentView === 'persona' && <PersonaProfileWrapper />}
-            {currentView === 'compliance' && <CompliancePanel />}
-            {currentView === 'inventory' && <InventoryPanel />}
-            {currentView === 'breach-management' && <BreachManagementPanel />}
-            {currentView === 'settings' && <SettingsPanel />}
-          </div>
-        } />
+        <Route path="/" element={dashboardContent} />
+        <Route path="/:client" element={dashboardContent} />
         <Route path="/admin/users/:userId" element={<UserDetail />} />
+        <Route path="/:client/admin/users/:userId" element={<UserDetail />} />
         <Route path="/admin" element={<AdminRedirect />} />
+        <Route path="/:client/admin" element={<AdminRedirect />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

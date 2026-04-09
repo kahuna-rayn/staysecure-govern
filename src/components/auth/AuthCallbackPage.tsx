@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
-import { debug } from '@/utils/debug';
+import debug from '@/utils/debug';
 
 /**
  * Handles the OAuth PKCE callback from Supabase after Microsoft Entra login.
@@ -23,10 +23,10 @@ const AuthCallbackPage = () => {
   useEffect(() => {
     debug.log('[AuthCallbackPage] mounted', { search: location.search });
 
-    // Extract client prefix from the path so we redirect back to the right
-    // client dashboard (e.g. /rayn/auth/callback → /rayn after login).
+    // Extract the client prefix from the current path so we can redirect back
+    // to the right client dashboard (e.g. /rayn → /rayn after login).
     const pathParts = location.pathname.split('/').filter(Boolean);
-    // pathParts[0] = client segment ('rayn'), pathParts[1] = 'auth'
+    // pathParts[0] is the client segment (e.g. 'rayn'), pathParts[1] is 'auth'
     const clientSegment = pathParts.length >= 2 ? pathParts[0] : '';
     const clientPrefix = clientSegment ? `/${clientSegment}` : '';
 
@@ -40,9 +40,13 @@ const AuthCallbackPage = () => {
       return;
     }
 
+    // The Supabase client automatically exchanges ?code= for a session.
+    // Listen for the SIGNED_IN event; AuthProvider will then handle JIT
+    // profile creation and the inactive gate.
     const code = searchParams.get('code');
 
     if (code) {
+      // PKCE flow: explicitly exchange the code for a session.
       debug.log('[AuthCallbackPage] PKCE code found → exchanging');
       supabase.auth.exchangeCodeForSession(window.location.href)
         .then(({ error: exchangeError }) => {
@@ -57,7 +61,9 @@ const AuthCallbackPage = () => {
       return;
     }
 
-    // Implicit flow fallback: wait for SIGNED_IN event
+    // Implicit flow: Supabase returned tokens in the URL hash and the client
+    // already processed them (onAuthStateChange SIGNED_IN will have fired or
+    // will fire shortly). Just wait for it and redirect.
     debug.log('[AuthCallbackPage] no PKCE code — waiting for implicit-flow SIGNED_IN');
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       debug.log('[AuthCallbackPage] onAuthStateChange', event, session?.user?.email);
@@ -67,6 +73,8 @@ const AuthCallbackPage = () => {
       }
     });
 
+    // Also check if we already have a session (SIGNED_IN may have fired before
+    // this listener was registered).
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         debug.log('[AuthCallbackPage] session already present → navigating');
