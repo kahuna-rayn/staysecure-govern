@@ -9,6 +9,7 @@ export default {
 		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
 		"./node_modules/staysecure-organisation/src/**/*.{ts,tsx}",
+		"./node_modules/staysecure-auth/src/**/*.{ts,tsx}",
 	],
 	prefix: "",
 	theme: {

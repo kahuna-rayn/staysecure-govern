@@ -17,6 +17,7 @@ import BreachManagementPanel from "@/components/BreachManagementPanel";
 import NotFound from "./pages/NotFound";
 import UserDetail from "./pages/UserDetail";
 import { PersonaProfileWrapper } from "@/components/PersonaProfileWrapper";
+import AuthCallbackPage from "@/components/auth/AuthCallbackPage";
 import { useState, useEffect } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useClient } from "@/hooks/useClient";
@@ -148,7 +149,11 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <AppContent />
+            <Routes>
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/:client/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="*" element={<AppContent />} />
+            </Routes>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
