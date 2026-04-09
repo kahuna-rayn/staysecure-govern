@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import debug from '@/utils/debug';
+import { debug } from '@/utils/debug';
+import { useState } from 'react';
 
 export interface UserDepartment {
   id: string;
@@ -13,21 +14,22 @@ export interface UserDepartment {
   pairing_id: string;
 }
 
+export const USER_DEPARTMENTS_KEY = (userId?: string) => ['user-departments', userId] as const;
+
 export const useUserDepartments = (userId?: string) => {
-  const [userDepartments, setUserDepartments] = useState<UserDepartment[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [isAddingDepartment, setIsAddingDepartment] = useState(false);
   const [isRemovingDepartment, setIsRemovingDepartment] = useState(false);
   const [isUpdatingPrimary, setIsUpdatingPrimary] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchUserDepartments = async () => {
-    if (!userId) return;
-    
-    try {
-      setIsLoading(true);
+  const { data: userDepartments = [], isLoading, refetch } = useQuery({
+    queryKey: USER_DEPARTMENTS_KEY(userId),
+    queryFn: async () => {
+      if (!userId) return [];
+
       debug.log('useUserDepartments: Fetching departments for user:', userId);
-      
+
       const { data, error } = await supabase
         .from('user_departments')
         .select(`
@@ -44,7 +46,7 @@ export const useUserDepartments = (userId?: string) => {
 
       if (error) throw error;
 
-      const formattedData = data?.map(item => ({
+      return (data || []).map(item => ({
         id: item.id,
         user_id: item.user_id,
         department_id: item.department_id,
@@ -52,24 +54,26 @@ export const useUserDepartments = (userId?: string) => {
         is_primary: item.is_primary || false,
         assigned_at: item.assigned_at,
         assigned_by: item.assigned_by || '',
-        pairing_id: item.pairing_id || ''
-      })) || [];
+        pairing_id: item.pairing_id || '',
+      })) as UserDepartment[];
+    },
+    enabled: !!userId,
+  });
 
-      setUserDepartments(formattedData);
-    } catch (err) {
-      console.error('useUserDepartments: Error fetching departments:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: USER_DEPARTMENTS_KEY(userId) });
 
-  // Accept object with userId, departmentId, isPrimary, assignedBy
-  const addDepartment = async (params: { userId: string; departmentId: string; isPrimary: boolean; pairingId?: string; assignedBy?: string }) => {
+  const addDepartment = async (params: {
+    userId: string;
+    departmentId: string;
+    isPrimary: boolean;
+    pairingId?: string;
+    assignedBy?: string;
+  }) => {
     try {
       setIsAddingDepartment(true);
       debug.log('useUserDepartments: addDepartment called with params:', params);
-      
+
       const { error } = await supabase
         .from('user_departments')
         .insert([{
@@ -77,14 +81,11 @@ export const useUserDepartments = (userId?: string) => {
           department_id: params.departmentId,
           is_primary: params.isPrimary,
           pairing_id: params.pairingId,
-          assigned_by: params.assignedBy
+          assigned_by: params.assignedBy,
         }]);
 
-      debug.log('useUserDepartments: addDepartment insert error:', error);
       if (error) throw error;
-      
-      debug.log('useUserDepartments: Department added successfully, refetching...');
-      await fetchUserDepartments();
+      await invalidate();
     } catch (err) {
       console.error('useUserDepartments: addDepartment error:', err);
       setError(err instanceof Error ? err.message : 'Failed to add department');
@@ -93,7 +94,6 @@ export const useUserDepartments = (userId?: string) => {
     }
   };
 
-  // Accept assignmentId string (the department assignment record ID)
   const removeDepartment = async (assignmentId: string) => {
     try {
       setIsRemovingDepartment(true);
@@ -103,7 +103,7 @@ export const useUserDepartments = (userId?: string) => {
         .eq('id', assignmentId);
 
       if (error) throw error;
-      await fetchUserDepartments();
+      await invalidate();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove department');
     } finally {
@@ -111,18 +111,15 @@ export const useUserDepartments = (userId?: string) => {
     }
   };
 
-  // Accept object with userId and departmentId
   const setPrimaryDepartment = async (params: { userId: string; departmentId: string }) => {
     try {
       setIsUpdatingPrimary(true);
-      
-      // First, set all departments to non-primary for this user
+
       await supabase
         .from('user_departments')
         .update({ is_primary: false })
         .eq('user_id', params.userId);
 
-      // Then set the selected department as primary
       const { error } = await supabase
         .from('user_departments')
         .update({ is_primary: true })
@@ -130,17 +127,13 @@ export const useUserDepartments = (userId?: string) => {
         .eq('department_id', params.departmentId);
 
       if (error) throw error;
-      await fetchUserDepartments();
+      await invalidate();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to set primary department');
     } finally {
       setIsUpdatingPrimary(false);
     }
   };
-
-  useEffect(() => {
-    fetchUserDepartments();
-  }, [userId]);
 
   return {
     userDepartments,
@@ -152,6 +145,6 @@ export const useUserDepartments = (userId?: string) => {
     isAddingDepartment,
     isRemovingDepartment,
     isUpdatingPrimary,
-    refetch: fetchUserDepartments
+    refetch,
   };
 };

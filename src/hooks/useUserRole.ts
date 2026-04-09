@@ -5,84 +5,104 @@ import { useAuth } from 'staysecure-auth';
 export const useUserRole = () => {
   const { user } = useAuth();
   const [role, setRole] = useState<string | null>(null);
+  const [isDepartmentManager, setIsDepartmentManager] = useState(false);
+  const [isUserManager, setIsUserManager] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      fetchUserRole();
+      let cancelled = false;
+      setLoading(true);
+
+      const fetchAll = async () => {
+        const [roleResult, deptManagerResult, userManagerResult] = await Promise.all([
+          supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle(),
+          supabase.from('departments').select('id').eq('manager_id', user.id).limit(1),
+          supabase.from('profiles').select('id').eq('manager', user.id).limit(1),
+        ]);
+
+        if (cancelled) return;
+
+        const { data: roleData, error: roleError } = roleResult;
+        if (roleError) console.error('Error fetching user role:', roleError);
+        setRole(roleData?.role ?? null);
+
+        const { data: deptData, error: deptError } = deptManagerResult;
+        if (deptError) console.error('Error checking department manager:', deptError);
+        setIsDepartmentManager(!!(deptData && deptData.length > 0));
+
+        const { data: directReportData, error: directError } = userManagerResult;
+        if (directError) console.error('Error checking direct reports (profiles.manager):', directError);
+        setIsUserManager(!!(directReportData && directReportData.length > 0));
+
+        setLoading(false);
+      };
+
+      fetchAll();
+      return () => { cancelled = true; };
     } else {
       setLoading(false);
     }
   }, [user]);
 
-  const fetchUserRole = async () => {
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setRole(data?.role || null);
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      setRole(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Helper functions for role checking
-  const isAdmin = role === 'admin' || role === 'super_admin' || role === 'client_admin'; // Legacy compatibility
+  const isAdmin = role === 'admin' || role === 'super_admin' || role === 'client_admin';
   const isSuperAdmin = role === 'super_admin';
-  const isClientAdmin = role === 'client_admin'; // Support existing client_admin users
+  const isClientAdmin = role === 'client_admin';
   const isModerator = role === 'moderator';
-  
-  // Check if user has any admin privileges
-  const hasAdminAccess = isSuperAdmin || isClientAdmin;
+  // Manager = department manager (departments.manager_id) or user manager (profiles.manager)
+  const isManager = isDepartmentManager || isUserManager;
 
-  // Permission checks for different features
-  const canAccessLessons = isSuperAdmin;
-  const canAccessLearningTracks = isSuperAdmin;
-  const canAccessTranslation = isSuperAdmin;
-  const canAccessAssignments = hasAdminAccess;
-  const canAccessAnalytics = hasAdminAccess;
-  const canAccessReports = hasAdminAccess;
+  const hasAdminAccess = isSuperAdmin || isClientAdmin;
+  const hasManagerAccess = isManager;
+
+  // Permission checks
+  const canAccessAssignments = hasAdminAccess || hasManagerAccess;
+  const canAccessAnalytics = hasAdminAccess || hasManagerAccess;
+  const canAccessReports = hasAdminAccess || hasManagerAccess;
   const canAccessOrganisation = hasAdminAccess;
   const canAccessNotifications = hasAdminAccess;
   const canAccessTemplates = hasAdminAccess;
-  const canAccessAnyAdminFeature = hasAdminAccess;
+  const canAccessAnyAdminFeature = hasAdminAccess || hasManagerAccess;
 
-  // Get display name for role
   const getRoleDisplayName = () => {
+    if (isManager && !hasAdminAccess) return 'Manager';
     switch (role) {
-      case 'super_admin':
-        return 'Super Administrator';
-      case 'client_admin':
-        return 'Administrator';
-      case 'moderator':
-        return 'Moderator';
-      case 'user':
-        return 'User';
-      default:
-        return 'User';
+      case 'super_admin': return 'Super Administrator';
+      case 'client_admin': return 'Administrator';
+      case 'moderator': return 'Moderator';
+      case 'user': return 'User';
+      default: return 'User';
     }
   };
 
-  // Get role badge variant
   const getRoleBadgeVariant = () => {
     switch (role) {
       case 'super_admin':
       case 'client_admin':
-        return 'destructive'; // Red color to stand out
-      case 'moderator':
-        return 'outline';
+        return 'destructive';
       default:
         return 'outline';
     }
+  };
+
+  const refetch = async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    const [roleResult, deptResult, userManagerResult] = await Promise.all([
+      supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle(),
+      supabase.from('departments').select('id').eq('manager_id', user.id).limit(1),
+      supabase.from('profiles').select('id').eq('manager', user.id).limit(1),
+    ]);
+    const { data: roleData, error: roleError } = roleResult;
+    if (roleError) console.error('Error fetching user role:', roleError);
+    setRole(roleData?.role ?? null);
+    const { data: deptData, error: deptError } = deptResult;
+    if (deptError) console.error('Error checking department manager:', deptError);
+    setIsDepartmentManager(!!(deptData && deptData.length > 0));
+    const { data: directReportData, error: directError } = userManagerResult;
+    if (directError) console.error('Error checking direct reports:', directError);
+    setIsUserManager(!!(directReportData && directReportData.length > 0));
+    setLoading(false);
   };
 
   return {
@@ -91,10 +111,9 @@ export const useUserRole = () => {
     isSuperAdmin,
     isClientAdmin,
     isModerator,
+    isManager,
     hasAdminAccess,
-    canAccessLessons,
-    canAccessLearningTracks,
-    canAccessTranslation,
+    hasManagerAccess,
     canAccessAssignments,
     canAccessAnalytics,
     canAccessReports,
@@ -103,7 +122,7 @@ export const useUserRole = () => {
     canAccessTemplates,
     canAccessAnyAdminFeature,
     loading,
-    refetch: fetchUserRole,
+    refetch,
     getRoleDisplayName,
     getRoleBadgeVariant,
   };
