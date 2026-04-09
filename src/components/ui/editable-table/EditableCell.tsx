@@ -145,6 +145,37 @@ export function EditableCell<T extends { id: string }>({
       );
     }
 
+    if (column.type === 'badge' && column.options) {
+      return (
+        <div className="p-3 h-full flex items-center">
+          <Select
+            value={editingValue}
+            onValueChange={(val) => {
+              onValueChange(val);
+              onSave(val);
+            }}
+            onOpenChange={(open) => {
+              if (!open) {
+                setTimeout(() => onMoveToNext(), 0);
+              }
+            }}
+          >
+            <SelectTrigger
+              className="w-full h-8"
+              onKeyDown={handleSelectKeyDown}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {column.options.map(option => (
+                <SelectItem key={option} value={option}>{option}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
     if (column.type === 'textarea') {
       return (
         <div className="p-3 h-full">

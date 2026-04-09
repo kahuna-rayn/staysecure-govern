@@ -19,6 +19,8 @@ All colors MUST be HSL.
 
     --primary: 171 49% 42%;
     --primary-foreground: 210 40% 98%;
+    --learning-primary: 171 49% 42%;
+    --learning-primary-foreground: 210 40% 98%;
 
     --secondary: 124 46% 59%;
     --secondary-foreground: 189 97% 23%;

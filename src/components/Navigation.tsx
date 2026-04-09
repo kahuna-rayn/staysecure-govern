@@ -11,8 +11,8 @@ import { LogOut, Globe } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface NavigationProps {
-  currentView: 'dashboard' | 'persona' | 'admin' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management';
-  onViewChange: (view: 'dashboard' | 'persona' | 'admin' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management') => void;
+  currentView: 'dashboard' | 'persona' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management';
+  onViewChange: (view: 'dashboard' | 'persona' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management') => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) => {
@@ -26,9 +26,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
 
   // Determine current view from location
   const getCurrentViewFromLocation = (): typeof currentView => {
-    if (location.pathname.startsWith('/admin/users/')) {
-      return 'admin'; // User detail view is part of admin
-    }
     // Default to dashboard if on root
     return currentView;
   };
