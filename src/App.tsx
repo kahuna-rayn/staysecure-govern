@@ -12,7 +12,6 @@ import Navigation from "@/components/Navigation";
 import InventoryPanel from "@/components/InventoryPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import Dashboard from "@/components/Dashboard";
-import { KnowledgePanel } from 'staysecure-organisation';
 import CompliancePanel from "@/components/CompliancePanel";
 import BreachManagementPanel from "@/components/BreachManagementPanel";
 import NotFound from "./pages/NotFound";
@@ -45,7 +44,7 @@ const AdminRedirect = () => {
 
 const AppContentRouter = () => {
   const location = useLocation();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'persona' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'persona' | 'inventory' | 'settings' | 'compliance' | 'breach-management'>('dashboard');
 
   // Update currentView from navigation state when location changes
   useEffect(() => {
@@ -65,7 +64,6 @@ const AppContentRouter = () => {
             {currentView === 'persona' && <PersonaProfileWrapper />}
             {currentView === 'compliance' && <CompliancePanel />}
             {currentView === 'inventory' && <InventoryPanel />}
-            {currentView === 'certifications' && <KnowledgePanel />}
             {currentView === 'breach-management' && <BreachManagementPanel />}
             {currentView === 'settings' && <SettingsPanel />}
           </div>

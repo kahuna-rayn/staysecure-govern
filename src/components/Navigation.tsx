@@ -11,8 +11,8 @@ import { LogOut, Globe } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface NavigationProps {
-  currentView: 'dashboard' | 'persona' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management';
-  onViewChange: (view: 'dashboard' | 'persona' | 'inventory' | 'certifications' | 'settings' | 'compliance' | 'breach-management') => void;
+  currentView: 'dashboard' | 'persona' | 'inventory' | 'settings' | 'compliance' | 'breach-management';
+  onViewChange: (view: 'dashboard' | 'persona' | 'inventory' | 'settings' | 'compliance' | 'breach-management') => void;
 }
 
 const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) => {
@@ -163,15 +163,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
               size="sm"
             >
               Inventory
-            </Button>
-          )}
-          {isAdmin && (
-            <Button
-              variant={getCurrentViewFromLocation() === 'certifications' ? 'default' : 'ghost'}
-              onClick={() => handleNavigation('certifications')}
-              size="sm"
-            >
-              Knowledge
             </Button>
           )}
           {isAdmin && (
