@@ -449,7 +449,8 @@ const CompliancePanel: React.FC = () => {
     {
       key: 'approval_status' as keyof PeriodicReviewWithNames,
       header: 'Status',
-      type: 'text' as const,
+      type: 'select' as const,
+      options: ['Not Submitted', 'Submitted', 'Rejected', 'Approved'],
       editable: true,
       sortable: true,
       width: '140px',
@@ -457,8 +458,9 @@ const CompliancePanel: React.FC = () => {
     {
       key: 'any_change' as keyof PeriodicReviewWithNames,
       header: 'Changes Made',
-      type: 'text' as const,
-      editable: false,
+      type: 'select' as const,
+      options: ['Yes', 'No'],
+      editable: true,
       sortable: true,
       width: '140px',
     },
