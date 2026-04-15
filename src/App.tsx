@@ -3,7 +3,7 @@ import debug from '@/utils/debug';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from 'staysecure-auth';
 import { LoginForm } from 'staysecure-auth';
@@ -22,7 +22,23 @@ import { useState, useEffect } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useClient } from "@/hooks/useClient";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error: any) => {
+      const msg = (error?.message ?? '').toLowerCase();
+      const isAuthError =
+        error?.code === 'PGRST301' ||
+        error?.status === 401 ||
+        msg.includes('jwt') ||
+        msg.includes('not authenticated') ||
+        msg.includes('invalid token');
+      if (isAuthError) {
+        sessionStorage.setItem('auth_session_expired', '1');
+        supabase.auth.signOut();
+      }
+    },
+  }),
+});
 
 // Redirect component for /admin route
 const AdminRedirect = () => {
