@@ -89,7 +89,7 @@ const PhysicalLocationAccess: React.FC = () => {
       setFormData(prev => ({
         ...prev,
         full_name: selectedUser.full_name || '',
-        email: selectedUser.email || selectedUser.username || '',
+        email: selectedUser.email || '',
         department: selectedUser.department || '',
         role_account_type: selectedUser.role || '',
       }));
@@ -190,7 +190,7 @@ const PhysicalLocationAccess: React.FC = () => {
                     <SelectContent>
                       {profiles.map((profile) => (
                         <SelectItem key={profile.id} value={profile.id}>
-                          {profile.full_name || 'No name'} ({profile.email || profile.username || 'No email'})
+                          {profile.full_name || 'No name'} ({profile.email || profile.email || 'No email'})
                         </SelectItem>
                       ))}
                     </SelectContent>

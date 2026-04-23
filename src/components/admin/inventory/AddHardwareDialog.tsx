@@ -201,8 +201,8 @@ const AddHardwareDialog: React.FC<AddHardwareDialogProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {profiles.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.full_name || profile.username || 'No name'}>
-                      {profile.full_name || profile.username || 'No name'} ({profile.email})
+                    <SelectItem key={profile.id} value={profile.full_name || profile.email || 'No name'}>
+                      {profile.full_name || profile.email || 'No name'} ({profile.email})
                     </SelectItem>
                   ))}
                 </SelectContent>

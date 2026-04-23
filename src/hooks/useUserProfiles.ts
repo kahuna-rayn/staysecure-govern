@@ -9,7 +9,6 @@ export interface UserProfile {
   full_name: string;
   first_name?: string;
   last_name?: string;
-  username: string;
   email: string;
   role: string;
   department: string;
@@ -58,7 +57,7 @@ export const useUserProfiles = () => {
       // Fetch emails from account_inventory table
       const { data: accountInventoryData, error: accountError } = await supabase
         .from('account_inventory')
-        .select('full_name, username_email');
+        .select('full_name, email');
 
       if (accountError) {
         console.error('Error fetching account inventory emails:', accountError);
@@ -68,8 +67,8 @@ export const useUserProfiles = () => {
       const emailMap = new Map<string, string>();
       if (accountInventoryData) {
         accountInventoryData.forEach((account: any) => {
-          if (account.full_name && account.username_email) {
-            emailMap.set(account.full_name, account.username_email);
+          if (account.full_name && account.email) {
+            emailMap.set(account.full_name, account.email);
           }
         });
       }
@@ -82,9 +81,8 @@ export const useUserProfiles = () => {
         full_name: profile.full_name || '',
         first_name: profile.first_name || '',
         last_name: profile.last_name || '',
-        username: profile.username || '',
         // Try to get email from account inventory first, then from auth, then fall back to 'Not available'
-        email: emailMap.get(profile.full_name) || authEmailMap.get(profile.id) || 'Not available',
+        email: emailMap.get(profile.full_name) || authEmailMap.get(profile.id) || profile.email || 'Not available',
         role: '', // Role would need to be fetched from user_profile_roles
         department: '', // Department would need to be fetched from user_departments
         manager: profile.manager || '',
@@ -177,8 +175,7 @@ export const useUserProfiles = () => {
       const newProfile: UserProfile = {
         id: data.id,
         full_name: data.full_name || '',
-        username: data.username || '',
-        email: '',
+        email: data.email || '',
         role: '', // Role would need to be fetched from user_profile_roles
         department: '', // Department would need to be fetched from user_departments
         manager: data.manager || '',

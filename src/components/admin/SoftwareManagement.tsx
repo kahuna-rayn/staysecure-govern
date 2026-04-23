@@ -97,7 +97,7 @@ const SoftwareManagement: React.FC = () => {
                   <SelectContent>
                     {profiles.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.full_name || user.username || 'Unnamed User'}
+                        {user.full_name || user.email || 'Unnamed User'}
                       </SelectItem>
                     ))}
                   </SelectContent>

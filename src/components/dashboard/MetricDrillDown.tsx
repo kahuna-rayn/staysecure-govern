@@ -402,7 +402,7 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
       case 'total_endpoints':
         // Count user's hardware devices (match by asset_owner field with user's name)
         const userHardware = hardwareInventory.filter(hw => 
-          hw.asset_owner === profile.full_name || hw.asset_owner === profile.username
+          hw.asset_owner === profile.full_name || hw.asset_owner === profile.email
         );
         const deviceCount = userHardware.length;
         if (deviceCount === 0) return 'No Devices';
@@ -452,7 +452,7 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
         
         if (metricId === 'hw_onboarded_30d') {
           const recentHardware = hardwareInventory.filter(hw => 
-            (hw.asset_owner === profile.full_name || hw.asset_owner === profile.username) && 
+            (hw.asset_owner === profile.full_name || hw.asset_owner === profile.email) && 
             hw.created_at && 
             new Date(hw.created_at) >= thirtyDaysAgo
           );

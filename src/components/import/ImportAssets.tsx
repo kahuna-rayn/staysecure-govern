@@ -152,7 +152,7 @@ const ImportAssets: React.FC = () => {
               } else if (selectedAssetType === 'accounts') {
                 await addAccountItem({
                   full_name: row['Full Name'] || row['full_name'] || 'Unknown User',
-                  username_email: row['Username Email'] || row['username_email'] || `user${Date.now()}@example.com`,
+                  email: row['Email'] || row['email'] || `user${Date.now()}@example.com`,
                   software: row['Software'] || row['software'] || null,
                   department: row['Department'] || row['department'] || null,
                   role_account_type: row['Role Account Type'] || row['role_account_type'] || null,

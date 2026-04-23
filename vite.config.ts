@@ -16,11 +16,9 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ['react', 'react-dom', 'react-router-dom', 'staysecure-auth', 'staysecure-notifications'],
   },
-  logLevel: 'warn',
-  customLogger: {
-    info: () => {},
-    warn: console.warn,
-    error: console.error,
+  optimizeDeps: {
+    exclude: ['staysecure-organisation', 'staysecure-notifications'],
   },
 }));

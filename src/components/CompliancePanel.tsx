@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useAuth } from 'staysecure-auth';
 import debug from '@/utils/debug';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +43,7 @@ interface PeriodicReviewWithNames extends PeriodicReview {
 }
 
 const CompliancePanel: React.FC = () => {
+  const { user } = useAuth();
   const [keyDates, setKeyDates] = useState<KeyDate[]>([]);
   const [periodicReviews, setPeriodicReviews] = useState<PeriodicReviewWithNames[]>([]);
   const [loading, setLoading] = useState(true);
@@ -347,15 +349,38 @@ const CompliancePanel: React.FC = () => {
 
   const handlePeriodicReviewUpdate = async (id: string, updates: Partial<PeriodicReviewWithNames>) => {
     try {
+      // Block edits to already-approved records (audit integrity)
+      const existing = periodicReviews.find(r => r.id === id);
+      if (existing?.approval_status === 'Approved') {
+        toast({
+          title: "Locked",
+          description: "Approved reviews cannot be modified.",
+          variant: "destructive",
+        });
+        return { success: false, error: "Record is locked" };
+      }
+
       // Remove computed fields before updating
       const { submitted_by_name, approved_by_name, ...rawUpdates } = updates;
-      
+
       // Convert any_change string back to boolean if present
-      const dbUpdates = { ...rawUpdates };
+      const dbUpdates: any = { ...rawUpdates };
       if ('any_change' in dbUpdates && typeof dbUpdates.any_change === 'string') {
         dbUpdates.any_change = dbUpdates.any_change === 'Yes';
       }
-      
+
+      // Auto-populate audit timestamps when status changes
+      if ('approval_status' in dbUpdates) {
+        const now = new Date().toISOString();
+        if (dbUpdates.approval_status === 'Approved') {
+          dbUpdates.approved_at = now;
+          dbUpdates.approved_by = user?.id ?? null;
+        } else if (dbUpdates.approval_status === 'Submitted') {
+          dbUpdates.submitted_at = now;
+          dbUpdates.submitted_by = user?.id ?? null;
+        }
+      }
+
       const { error } = await supabase
         .from('periodic_reviews')
         .update(dbUpdates)
@@ -363,10 +388,16 @@ const CompliancePanel: React.FC = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setPeriodicReviews(prev => 
-        prev.map(item => 
-          item.id === id ? { ...item, ...updates } : item
+      // Merge db-level changes (timestamps, booleans) back into local state
+      const stateUpdates: any = { ...updates };
+      if (dbUpdates.approved_at) stateUpdates.approved_at = dbUpdates.approved_at;
+      if (dbUpdates.approved_by) stateUpdates.approved_by = dbUpdates.approved_by;
+      if (dbUpdates.submitted_at) stateUpdates.submitted_at = dbUpdates.submitted_at;
+      if (dbUpdates.submitted_by) stateUpdates.submitted_by = dbUpdates.submitted_by;
+
+      setPeriodicReviews(prev =>
+        prev.map(item =>
+          item.id === id ? { ...item, ...stateUpdates } : item
         )
       );
 

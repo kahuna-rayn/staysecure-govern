@@ -43,7 +43,7 @@ declare module 'staysecure-organisation' {
     manager: string;
     startDate: string;
     account: {
-      username: string;
+      email: string;
       employeeId: string;
       status: string;
       accessLevel: string;

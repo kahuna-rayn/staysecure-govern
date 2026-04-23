@@ -6,7 +6,6 @@ import debug from '@/utils/debug';
 
 export interface Profile {
   id: string;
-  username?: string;
   full_name?: string;
   first_name?: string;
   last_name?: string;
@@ -55,7 +54,7 @@ export const useProfile = (profileId?: string) => {
       // Fetch profile data
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, first_name, last_name, username, avatar_url, bio, manager, phone, location, start_date, employee_id, last_login, password_last_changed, two_factor_enabled, status, language, created_at, updated_at')
+        .select('id, full_name, first_name, last_name, email, avatar_url, bio, manager, phone, location, start_date, employee_id, last_login, password_last_changed, two_factor_enabled, status, language, created_at, updated_at')
         .eq('id', id)
         .single();
 

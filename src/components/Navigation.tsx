@@ -103,7 +103,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
                     }`}>
                       {profile.first_name && profile.last_name 
                         ? `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()
-                        : profile.username?.slice(0, 2).toUpperCase() || 'U'
+                        : profile.email?.slice(0, 2).toUpperCase() || 'U'
                       }
                     </div>
                   )}
@@ -112,7 +112,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) =>
                 {/* Tooltip */}
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-popover text-popover-foreground text-sm rounded-md border shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                   <div className="text-center">
-                    <div className="font-medium">{profile.full_name || profile.username || 'User'}</div>
+                    <div className="font-medium">{profile.full_name || profile.email || 'User'}</div>
                     {profile.email && (
                       <div className="text-xs text-muted-foreground mt-1">{profile.email}</div>
                     )}

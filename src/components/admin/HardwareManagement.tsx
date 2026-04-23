@@ -64,7 +64,7 @@ const HardwareManagement: React.FC = () => {
         .from('hardware_inventory')
         .update({ 
           user_id: formData.user_id,
-          asset_owner: selectedProfile.full_name || selectedProfile.username || 'Assigned User',
+          asset_owner: selectedProfile.full_name || selectedProfile.email || 'Assigned User',
           status: 'Assigned'
         })
         .eq('id', formData.hardware_inventory_id);
@@ -73,7 +73,7 @@ const HardwareManagement: React.FC = () => {
 
       toast({
         title: "Hardware assigned",
-        description: `${selectedHardwareItem.device_name} has been successfully assigned to ${selectedProfile.full_name || selectedProfile.username}`,
+        description: `${selectedHardwareItem.device_name} has been successfully assigned to ${selectedProfile.full_name || selectedProfile.email}`,
       });
       
       // Refresh the inventory data
@@ -120,7 +120,7 @@ const HardwareManagement: React.FC = () => {
                   <SelectContent>
                     {profiles.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.full_name || user.username || 'Unnamed User'}
+                        {user.full_name || user.email || 'Unnamed User'}
                       </SelectItem>
                     ))}
                   </SelectContent>

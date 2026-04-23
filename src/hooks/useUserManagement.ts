@@ -9,7 +9,6 @@ interface UserProfile {
   status?: string;
   first_name?: string;
   last_name?: string;
-  username?: string;
   phone?: string;
   location?: string;
   location_id?: string;
@@ -38,7 +37,6 @@ interface NewUser {
   full_name: string;
   first_name: string;
   last_name: string;
-  username: string;
   phone: string;
   location: string;
   location_id?: string;
@@ -59,7 +57,6 @@ export const useUserManagement = () => {
     full_name: '',
     first_name: '',
     last_name: '',
-    username: '',
     phone: '',
     location: '',
     location_id: '',
@@ -84,14 +81,13 @@ export const useUserManagement = () => {
       email: '',
       password: '',
       full_name: '',
-      first_name: '',
-      last_name: '',
-      username: '',
-      phone: '',
-      location: '',
-      location_id: '',
-      status: 'Active',
-      access_level: 'User',
+    first_name: '',
+    last_name: '',
+    phone: '',
+    location: '',
+    location_id: '',
+    status: 'Active',
+    access_level: 'User',
       bio: '',
       employee_id: ''
     });
