@@ -32,7 +32,7 @@ export type Database = {
           software: string | null
           status: string | null
           user_id: string | null
-          username_email: string
+          email: string
         }
         Insert: {
           approval_status?: string | null
@@ -51,7 +51,7 @@ export type Database = {
           software?: string | null
           status?: string | null
           user_id?: string | null
-          username_email: string
+          email: string
         }
         Update: {
           approval_status?: string | null
@@ -70,7 +70,7 @@ export type Database = {
           software?: string | null
           status?: string | null
           user_id?: string | null
-          username_email?: string
+          email?: string
         }
         Relationships: []
       }
@@ -1465,7 +1465,7 @@ export type Database = {
           status: string | null
           two_factor_enabled: boolean | null
           updated_at: string
-          username: string | null
+          email: string | null
         }
         Insert: {
           access_level?: string | null
@@ -1490,7 +1490,7 @@ export type Database = {
           status?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string
-          username?: string | null
+          email?: string | null
         }
         Update: {
           access_level?: string | null
@@ -1515,7 +1515,7 @@ export type Database = {
           status?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string
-          username?: string | null
+          email?: string | null
         }
         Relationships: [
           {

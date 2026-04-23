@@ -12,7 +12,6 @@ export interface ManagedUser {
   id: string;
   full_name?: string;
   email?: string;
-  username?: string;
   department?: string;
   role?: string;
   status?: string;
@@ -91,22 +90,21 @@ export const useManagerPermissions = () => {
 
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, username, status')
+        .select('id, full_name, email, status')
         .in('id', allIds);
 
       if (profileError) throw profileError;
 
       const { data: accountData } = await supabase
         .from('account_inventory')
-        .select('user_id, username_email')
+        .select('user_id, email')
         .in('user_id', allIds);
 
       const users: ManagedUser[] = (profiles || []).map(profile => ({
         id: profile.id,
         full_name: profile.full_name,
-        username: profile.username,
         status: profile.status,
-        email: accountData?.find(acc => acc.user_id === profile.id)?.username_email,
+        email: profile.email || accountData?.find(acc => acc.user_id === profile.id)?.email,
       }));
 
       setManagedUsers(users);

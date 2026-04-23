@@ -13,7 +13,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ profile }) => {
   const { profiles, updateProfile } = useUserProfiles();
   const [manager, setManager] = React.useState(profile.manager);
   const managerProfile = profiles.find(u => u.id === profile.manager);
-  const managerName = managerProfile ? (managerProfile.full_name || managerProfile.username) : 'Not assigned';
+  const managerName = managerProfile ? (managerProfile.full_name || managerProfile.email) : 'Not assigned';
 
   const handleReportsToChange = async (value: string) => {
     setManager(value);
@@ -28,7 +28,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ profile }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Username</label>
-              <p className="text-sm">{profile.account?.username || 'Not set'}</p>
+              <p className="text-sm">{profile.account?.email || 'Not set'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Employee ID</label>

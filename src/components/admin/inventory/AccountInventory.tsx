@@ -18,7 +18,7 @@ const AccountInventory: React.FC = () => {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [formData, setFormData] = useState({
     full_name: '',
-    username_email: '',
+    email: '',
     software: '',
     data_class: '',
     approval_status: 'Not submitted',
@@ -36,7 +36,7 @@ const AccountInventory: React.FC = () => {
       setFormData(prev => ({
         ...prev,
         full_name: selectedUser.full_name || '',
-        username_email: selectedUser.email || selectedUser.username || '',
+        email: selectedUser.email || '',
       }));
     }
   };
@@ -45,7 +45,7 @@ const AccountInventory: React.FC = () => {
     setSelectedUserId('');
     setFormData({
       full_name: '',
-      username_email: '',
+      email: '',
       software: '',
       data_class: '',
       approval_status: 'Not submitted',
@@ -120,7 +120,7 @@ const AccountInventory: React.FC = () => {
                     <SelectContent>
                       {profiles.map((profile) => (
                         <SelectItem key={profile.id} value={profile.id}>
-                          {profile.full_name || 'No name'} ({profile.email || profile.username || 'No email'})
+                          {profile.full_name || 'No name'} ({profile.email || profile.email || 'No email'})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -131,7 +131,7 @@ const AccountInventory: React.FC = () => {
                   <div className="col-span-2 p-3 bg-gray-50 rounded-lg">
                     <h4 className="font-medium mb-2">Selected User Details:</h4>
                     <p><strong>Name:</strong> {formData.full_name}</p>
-                    <p><strong>Username:</strong> {formData.username_email}</p>
+                    <p><strong>Username:</strong> {formData.email}</p>
                   </div>
                 )}
 
@@ -147,11 +147,11 @@ const AccountInventory: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="username_email">Username *</Label>
+                  <Label htmlFor="email">Username *</Label>
                   <Input
-                    id="username_email"
-                    value={formData.username_email}
-                    onChange={(e) => setFormData({ ...formData, username_email: e.target.value })}
+                    id="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="Auto-filled when user is selected"
                     required
                     disabled={!!selectedUserId}
@@ -212,7 +212,7 @@ const AccountInventory: React.FC = () => {
                     <SelectContent>
                       {profiles.map((profile) => (
                         <SelectItem key={profile.id} value={profile.id}>
-                          {profile.full_name || 'No name'} ({profile.email || profile.username || 'No email'})
+                          {profile.full_name || 'No name'} ({profile.email || profile.email || 'No email'})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -288,7 +288,7 @@ const AccountInventory: React.FC = () => {
               {accountInventory.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.full_name}</TableCell>
-                  <TableCell>{item.username_email}</TableCell>
+                  <TableCell>{item.email}</TableCell>
                   <TableCell>{item.software || 'Not specified'}</TableCell>
                   <TableCell>
                     {item.date_access_created 

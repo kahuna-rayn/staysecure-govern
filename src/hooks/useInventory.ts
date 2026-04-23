@@ -46,7 +46,7 @@ export interface SoftwareInventoryItem {
 export interface AccountInventoryItem {
   id: string;
   full_name: string;
-  username_email: string;
+  email: string;
   software?: string;
   department?: string;
   role_account_type?: string;

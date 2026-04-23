@@ -42,7 +42,6 @@ export const handleCreateUser = async (
         password: newUser.password,
         userData: {
           full_name: newUser.full_name,
-          username: newUser.username,
           phone: newUser.phone,
           location: newUser.location,
           status: newUser.status,
@@ -65,7 +64,6 @@ export const handleCreateUser = async (
           // Update basic profile information
           const profileUpdates = {
             full_name: newUser.full_name,
-            username: newUser.username,
             phone: newUser.phone,
             location: newUser.location,
             status: newUser.status,

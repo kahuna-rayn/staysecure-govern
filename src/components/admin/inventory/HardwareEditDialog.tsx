@@ -74,8 +74,8 @@ const HardwareEditDialog: React.FC<HardwareEditDialogProps> = ({
               <SelectContent>
                 <SelectItem value="no-owner">No Owner</SelectItem>
                 {profiles.map((profile) => (
-                  <SelectItem key={profile.id} value={profile.full_name || profile.username || profile.id}>
-                    {profile.full_name || profile.username || 'Unnamed User'}
+                  <SelectItem key={profile.id} value={profile.full_name || profile.email || profile.id}>
+                    {profile.full_name || profile.email || 'Unnamed User'}
                   </SelectItem>
                 ))}
               </SelectContent>

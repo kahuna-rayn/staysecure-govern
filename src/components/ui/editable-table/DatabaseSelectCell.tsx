@@ -98,7 +98,7 @@ export function DatabaseSelectCell({
       if (table === 'profiles') {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, full_name, username')
+          .select('id, full_name, email')
           .order('full_name');
         if (error) throw error;
         return data;
