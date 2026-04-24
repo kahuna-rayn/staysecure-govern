@@ -71,10 +71,10 @@ const MetricCards: React.FC<MetricCardsProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Enrolled in Learn</p>
-              <p className="text-3xl font-bold text-blue-600">{enrolledInLearnPercentage}%</p>
+              <p className="text-3xl font-bold text-primary">{enrolledInLearnPercentage}%</p>
               <p className="text-sm text-muted-foreground">Staff participation rate</p>
             </div>
-            <Users className="h-8 w-8 text-blue-600" />
+            <Users className="h-8 w-8 text-primary" />
           </div>
         </CardContent>
       </Card>
@@ -84,10 +84,10 @@ const MetricCards: React.FC<MetricCardsProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Completed Learn</p>
-              <p className="text-3xl font-bold text-green-600">{completedLearnPercentage}%</p>
+              <p className="text-3xl font-bold text-secondary">{completedLearnPercentage}%</p>
               <p className="text-sm text-muted-foreground">Cyber learning completion rate</p>
             </div>
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-8 w-8 text-secondary" />
           </div>
         </CardContent>
       </Card>
@@ -97,10 +97,10 @@ const MetricCards: React.FC<MetricCardsProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Completed PDPA e-Learning</p>
-              <p className="text-3xl font-bold text-green-600">{completedPDPAPercentage}%</p>
+              <p className="text-3xl font-bold text-secondary">{completedPDPAPercentage}%</p>
               <p className="text-sm text-muted-foreground">Data protection completion rate</p>
             </div>
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-8 w-8 text-secondary" />
           </div>
         </CardContent>
       </Card>

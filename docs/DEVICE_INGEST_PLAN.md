@@ -8,15 +8,35 @@
 
 ---
 
+## Impacted Modules
+
+| Module | Impact |
+|--------|--------|
+| `govern/` | New edge function; DB migration on `hardware_inventory`; `config.toml` update; `types.ts` regeneration; optional UI enhancements to hardware inventory views |
+| `organisation/` | DB migration on `org_profile`; new device integration settings panel; `org_profile` types regeneration |
+| `deploy/` | `onboard-client.sh` — add `supabase secrets set GOVERN_API_KEY` step |
+| `learn/` | No changes |
+| `auth/` | No changes |
+| `notifications/` | No changes |
+| `license/` | No changes |
+
+---
+
 ## 1. Database Migration
 
-Add columns to `hardware_inventory` to capture source-system fields not currently in the schema:
+The actual `hardware_inventory` table definition has two important constraints that shape the migration:
+
+- `serial_number` is already `UNIQUE` — this is the natural upsert key for deduplication across syncs
+- `location_id` is a `uuid` FK to a locations table — Intune/Atera provide a location string, not a UUID, so a separate text column is needed for the raw value
+
+Add the following columns:
 
 ```sql
 ALTER TABLE hardware_inventory
-  ADD COLUMN IF NOT EXISTS source           text,          -- 'intune' | 'atera' | 'manual'
-  ADD COLUMN IF NOT EXISTS external_id      text,          -- ID in source system (for upsert dedup)
-  ADD COLUMN IF NOT EXISTS os_type          text,          -- Windows / macOS / Linux
+  ADD COLUMN IF NOT EXISTS source           text,           -- 'intune' | 'atera' | 'manual'
+  ADD COLUMN IF NOT EXISTS external_id      text,           -- ID in the source system (metadata only)
+  ADD COLUMN IF NOT EXISTS os_type          text,           -- Windows / macOS / Linux
+  ADD COLUMN IF NOT EXISTS asset_location   text,           -- raw location string from source (location_id FK cannot be auto-resolved)
   ADD COLUMN IF NOT EXISTS domain_workgroup text,
   ADD COLUMN IF NOT EXISTS ip_address       text,
   ADD COLUMN IF NOT EXISTS mac_addresses    text,
@@ -25,9 +45,21 @@ ALTER TABLE hardware_inventory
   ADD COLUMN IF NOT EXISTS processor        text,
   ADD COLUMN IF NOT EXISTS memory           text,
   ADD COLUMN IF NOT EXISTS antivirus        text,
-  ADD COLUMN IF NOT EXISTS last_synced_at   timestamptz,
-  ADD UNIQUE (source, external_id);         -- prevents duplicate upserts
+  ADD COLUMN IF NOT EXISTS last_synced_at   timestamptz;
+-- No new unique constraint needed: serial_number is already UNIQUE and is the upsert key
 ```
+
+**Upsert strategy:** use `serial_number` as the conflict key:
+
+```typescript
+await supabase
+  .from('hardware_inventory')
+  .upsert(rows, { onConflict: 'serial_number', ignoreDuplicates: false })
+```
+
+Each client uses either Intune or Atera — never both. `source` is therefore a static label per client (set once, never changes). There is no cross-source conflict risk.
+
+**Devices with no serial number** (some VMs, cloud-only devices): generate a synthetic key as `NOSERIAL-{external_id}` so they still upsert cleanly.
 
 File: `govern/supabase/migrations/add_device_ingest_columns.sql`
 
@@ -49,24 +81,24 @@ govern/supabase/functions/device-ingest/
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
-| POST | `/v1/sync?source=intune\|atera\|all` | `DEVICE_SYNC_KEY` | Trigger ingestion (internal/scheduled) |
-| GET | `/v1/devices` | `DEVICE_API_KEY` | Paginated device list (3rd party) |
-| GET | `/v1/devices/:id` | `DEVICE_API_KEY` | Single device (3rd party) |
+| POST | `/v1/sync` | `DEVICE_SYNC_KEY` | Trigger ingestion (internal/scheduled) |
+| GET | `/v1/devices` | `GOVERN_API_KEY` | Paginated device list (3rd party) |
+| GET | `/v1/devices/:id` | `GOVERN_API_KEY` | Single device (3rd party) |
 
-Two separate env-var keys: `DEVICE_SYNC_KEY` (internal, admin-level) and `DEVICE_API_KEY` (shared with developer, read-only).
+### Secrets
 
-### Required Secrets
+| Secret | Storage | Scope | Purpose |
+|--------|---------|-------|---------|
+| `DEVICE_SYNC_KEY` | Supabase secret | Per-project | Admin key for POST /v1/sync (internal use only) |
+| `GOVERN_API_KEY` | Supabase secret | Same value across all projects | Read key issued to 3rd party developer — same pattern as `LEARN_API_KEY` |
+| `intune_client_secret` | Supabase Vault | Per-client | Intune app registration secret |
+| `atera_api_key` | Supabase Vault | Per-client (1 client currently) | Atera API key |
+| `SUPABASE_URL` | Auto-provided | — | Supabase runtime |
+| `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided | — | Supabase runtime |
 
-| Env Var | Purpose |
-|--------|---------|
-| `DEVICE_SYNC_KEY` | Admin key for POST /v1/sync |
-| `DEVICE_API_KEY` | Read key issued to 3rd party developer |
-| `INTUNE_TENANT_ID` | Azure AD tenant |
-| `INTUNE_CLIENT_ID` | App registration client ID |
-| `INTUNE_CLIENT_SECRET` | App registration secret |
-| `ATERA_API_KEY` | Atera API key |
-| `SUPABASE_URL` | Auto-provided by Supabase runtime |
-| `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided by Supabase runtime |
+`GOVERN_API_KEY` follows the same pattern as `LEARN_API_KEY` — a Supabase secret set via `supabase secrets set` and read server-side via `Deno.env.get('GOVERN_API_KEY')`. `LEARN_API_KEY` is per-customer; `GOVERN_API_KEY` uses the same value across all client projects but is provisioned the same way during onboarding.
+
+Intune/Atera credentials are stored in Supabase Vault (DB-level encrypted store) rather than Supabase secrets because they are configured per-client through the admin UI — not set at deploy time.
 
 ---
 
@@ -94,7 +126,7 @@ Key Graph fields → `hardware_inventory` columns:
 
 ## 4. Atera Client (`atera.ts`)
 
-Paginates `GET https://app.atera.com/api/v3/agents` using `X-API-KEY` header.
+Paginates `GET https://app.atera.com/api/v3/agents` using `X-API-KEY` header, filtered by `atera_customer_id` (integer, stored in `org_profile`) to scope results to the correct customer.
 
 Key Atera fields → `hardware_inventory` columns:
 
@@ -115,75 +147,142 @@ Key Atera fields → `hardware_inventory` columns:
 
 ---
 
-## 5. Normaliser (`normalise.ts`)
+## 5. User Matching (pegging devices to profiles)
 
-Single function `normalise(source, raw[]) → HardwareInventoryInsert[]` with per-source adapters. Uses `serial_number` + `device_name` as human-readable dedup keys alongside `(source, external_id)`.
+The `hardware_inventory` table has two owner fields:
 
-Upsert strategy:
+- `asset_owner` (text) — raw name/identifier from the source system, always populated
+- `user_id` (uuid FK → `profiles`) — the resolved link to a user record, populated where a match is found
+
+### Intune
+
+Intune provides `userPrincipalName` (the user's UPN, typically their email) and `userDisplayName`. During normalisation, attempt to resolve `user_id` by looking up `profiles.email`:
 
 ```typescript
-await supabase
-  .from('hardware_inventory')
-  .upsert(rows, { onConflict: 'source,external_id', ignoreDuplicates: false })
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('id')
+  .eq('email', device.userPrincipalName)
+  .maybeSingle()
+
+row.user_id = profile?.id ?? null
+row.asset_owner = device.userDisplayName
 ```
+
+This is reliable — UPNs are email addresses and `profiles.email` is the canonical identifier.
+
+### Atera
+
+Atera provides `LastLoggedUser` which is a Windows login name (e.g. `jsmith`) — not an email. No auto-match attempt is made; `user_id` is left null and `asset_owner` is set to the raw login name. Admin can manually link the device via the existing `AssignHardwareDialog`.
+
+### Summary
+
+| Source | Field used | Match target | Auto-match |
+|--------|-----------|--------------|------------|
+| Intune | `userPrincipalName` | `profiles.email` | Yes — reliable |
+| Atera | `LastLoggedUser` | — | No — Windows username, not matchable |
+
+Unmatched devices (`user_id = null`) are visible in the hardware inventory and can be manually assigned by an admin.
 
 ---
 
-## 6. Tests (`index.test.ts`)
+## 6. Normaliser (`normalise.ts`)
+
+Single function `normalise(source, raw[]) → HardwareInventoryInsert[]` with per-source adapters. Each client configures one source only (`intune` or `atera`) — determined by `device_source` in `org_profile`. `serial_number` is the upsert key (already unique on the table). Devices with no serial number get a synthetic value `NOSERIAL-{external_id}`.
+
+---
+
+## 7. Tests (`index.test.ts`)
 
 Mirrors the `profile-lookup` test pattern (mock Supabase client factory, `makeQueryBuilder`, stub `Deno.env`):
 
 - Auth: missing key → 401, wrong key → 401
 - `GET /v1/devices` → 200 with pagination envelope
 - `GET /v1/devices/:uuid` → 200, invalid UUID → 400, not found → 404
-- `POST /v1/sync?source=intune` with wrong key → 401
-- `POST /v1/sync?source=atera` → mock Atera fetch, assert upsert called
-- `POST /v1/sync?source=intune` → mock Graph token + devices fetch, assert upsert called
+- `POST /v1/sync` with wrong key → 401
+- `POST /v1/sync` with `device_source = 'atera'` in org config → mock Atera fetch, assert upsert called
+- `POST /v1/sync` with `device_source = 'intune'` in org config → mock Graph token + devices fetch, assert upsert called
+- `POST /v1/sync` with `device_source = null` → 400 with clear error
+- Intune sync: device with matching `userPrincipalName` → `user_id` resolved; no match → `user_id` null
 - CORS preflight → 204
 
 External HTTP calls (Graph, Atera) are stubbed with `stub(globalThis, 'fetch', ...)`.
 
 ---
 
-## 7. Sharing: API Endpoint vs Edge Function Source
+## 8. Developer Access: One Edge Function, Dual Purpose
 
-### Option A — Share the API endpoint (recommended)
+The developer stack is Python, Node.js, PHP, MySQL, Linux. Sharing the edge function source code is not viable — they have no Supabase project or Deno runtime to run it on.
 
-Give the developer: the base URL, a scoped `DEVICE_API_KEY`, and a reference doc modelled on `learn/docs/PROFILE_LOOKUP_API_REFERENCE.md`.
+The `device-ingest` edge function serves two purposes within the same deployment:
 
-**Pros**
-- Zero deployment overhead for the developer — just HTTP calls
-- Credentials (Intune, Atera) never leave your infrastructure
-- You control versioning, rate limiting, and data freshness
-- Consistent with how you already share `profile-lookup` with govern
+```
+┌─────────────────────────────────────────────────────┐
+│          device-ingest edge function                │
+│                                                     │
+│  POST /v1/sync   ← internal only (DEVICE_SYNC_KEY) │
+│    └─ fetches Intune or Atera                       │
+│    └─ upserts into hardware_inventory               │
+│                                                     │
+│  GET /v1/devices       ← developer (GOVERN_API_KEY)│
+│  GET /v1/devices/:id   ← developer (GOVERN_API_KEY)│
+└─────────────────────────────────────────────────────┘
+```
 
-**Cons**
-- Developer is dependent on your uptime and your sync schedule
-- Any schema or field changes are a breaking change you must manage
-- Read-only; developer cannot trigger a sync themselves (unless you expose POST /v1/sync with a limited key)
-
-### Option B — Share the edge function source code
-
-Give the developer the `device-ingest/` directory to deploy to their own Supabase project.
-
-**Pros**
-- Developer is fully autonomous — they control schedule, fields, retries
-- No cross-team coordination for deploys or rate limits
-
-**Cons**
-- Developer must manage their own Intune/Atera credentials (security risk if mishandled)
-- They must operate a Supabase project and Deno runtime
-- Divergence risk: their fork drifts from your canonical schema
-- If Intune/Atera API changes, they must update independently
-- You lose visibility into what data they're writing to their DB
-
-### Recommendation
-
-Share the **API endpoint** (Option A). It matches the established `profile-lookup` precedent, keeps secrets centralised, and gives you control over the data contract. Add a `POST /v1/sync` route protected by a separate short-lived sync key if the developer needs to trigger on-demand refreshes. Document it the same way as the profile-lookup API reference.
+- `DEVICE_SYNC_KEY` and `GOVERN_API_KEY` are separate secrets — the developer key cannot trigger a sync or write any data
+- Sync schedule is controlled entirely by us (Supabase cron, nightly)
+- All Intune/Atera credentials stay server-side; the developer never sees them
+- Endpoint is versioned (`/v1/`) to allow non-breaking evolution
 
 ---
 
-## 8. Supabase Config
+## 9. Organisation Module Changes (per-client credentials)
+
+### Extend `org_profile` table
+
+`org_profile` already stores `entra_enabled` and `azure_tenant_id`. Add new columns:
+
+```sql
+ALTER TABLE org_profile
+  ADD COLUMN IF NOT EXISTS device_source         text,    -- 'intune' | 'atera' | null (not configured)
+  ADD COLUMN IF NOT EXISTS intune_tenant_id      text,
+  ADD COLUMN IF NOT EXISTS intune_client_id      text,
+  ADD COLUMN IF NOT EXISTS intune_client_secret  text,    -- Vault secret name, not the raw value
+  ADD COLUMN IF NOT EXISTS atera_api_key         text,    -- Vault secret name, not the raw value
+  ADD COLUMN IF NOT EXISTS atera_customer_id     integer, -- Atera customer ID used to scope agent queries
+  ADD COLUMN IF NOT EXISTS device_last_synced_at timestamptz;
+```
+
+The edge function reads credentials at runtime:
+
+```typescript
+const { data: org } = await supabase
+  .from('org_profile')
+  .select('device_source, intune_tenant_id, intune_client_id, intune_client_secret, atera_api_key')
+  .single()
+
+const secretName = org.device_source === 'intune'
+  ? org.intune_client_secret
+  : org.atera_api_key
+
+const { data: secret } = await supabase.rpc('vault.decrypted_secret', {
+  secret_name: secretName
+})
+```
+
+### Organisation module admin UI
+
+Extend the existing SSO settings panel to add:
+
+- Radio/select: **Device management source** — Intune or Atera (one only per client)
+- If Intune selected: Tenant ID, Client ID, Client Secret (write-only)
+- If Atera selected: API Key (write-only), Customer ID (integer input)
+- **Test connection** button — calls `POST /v1/sync?dry_run=true` to validate credentials without writing data
+- Last synced timestamp (read-only, from `device_last_synced_at`)
+
+---
+
+## 10. Supabase Config
 
 Add to `govern/supabase/config.toml`:
 
@@ -196,7 +295,11 @@ verify_jwt = false
 
 ## Implementation Checklist
 
-- [ ] `govern/supabase/migrations/add_device_ingest_columns.sql` — DB migration
+**Database**
+- [ ] `govern/supabase/migrations/add_device_ingest_columns.sql` — add new columns to `hardware_inventory`
+- [ ] `govern/supabase/migrations/add_integration_columns_to_org_profile.sql` — add device_source + Vault credential columns to `org_profile`
+
+**Edge function**
 - [ ] `govern/supabase/functions/device-ingest/intune.ts` — Intune Graph client
 - [ ] `govern/supabase/functions/device-ingest/atera.ts` — Atera REST client
 - [ ] `govern/supabase/functions/device-ingest/normalise.ts` — field normaliser
@@ -204,4 +307,130 @@ verify_jwt = false
 - [ ] `govern/supabase/functions/device-ingest/index.test.ts` — Deno unit tests
 - [ ] `govern/supabase/functions/device-ingest/deno.json` — Deno config
 - [ ] `govern/supabase/config.toml` — add `[functions.device-ingest]` entry
+
+**Organisation module / Govern admin UI**
+- [ ] Device source selector + credential fields in SSO settings panel
+- [ ] Test connection button (dry-run sync)
+
+**Docs & provisioning**
 - [ ] `govern/docs/DEVICE_INGEST_API_REFERENCE.md` — API reference for 3rd party developer
+- [ ] Provision `GOVERN_API_KEY` as a Supabase secret during client onboarding (added to `deploy/scripts/onboard-client.sh`)
+
+---
+
+## 11. For the 3rd Party Developer
+
+### What you receive
+
+1. **Base URL** — `https://<project-ref>.supabase.co/functions/v1/device-ingest`
+2. **`GOVERN_API_KEY`** — a Bearer token to include on every request
+3. **API reference doc** (`govern/docs/DEVICE_INGEST_API_REFERENCE.md`)
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/devices` | Paginated list of all devices |
+| GET | `/v1/devices/:id` | Single device by ID |
+
+Query parameters for `/v1/devices`:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number |
+| `page_size` | integer | 100 (max 200) | Results per page |
+| `updated_since` | ISO 8601 | — | Filter to records updated after this timestamp |
+
+### Code examples
+
+```python
+# Python
+import requests
+
+BASE = "https://<project-ref>.supabase.co/functions/v1/device-ingest"
+HEADERS = {"Authorization": "Bearer <GOVERN_API_KEY>"}
+
+# List all devices (paginated)
+resp = requests.get(f"{BASE}/v1/devices", headers=HEADERS, params={"page": 1, "page_size": 100})
+body = resp.json()
+# body = { "data": [...], "pagination": { "page": 1, "page_size": 100, "total_count": 243, ... } }
+
+# Single device
+resp = requests.get(f"{BASE}/v1/devices/<id>", headers=HEADERS)
+device = resp.json()  # { "data": { ... } }
+```
+
+```js
+// Node.js
+const BASE = 'https://<project-ref>.supabase.co/functions/v1/device-ingest'
+const HEADERS = { Authorization: `Bearer ${GOVERN_API_KEY}` }
+
+const res = await fetch(`${BASE}/v1/devices?page=1&page_size=100`, { headers: HEADERS })
+const { data, pagination } = await res.json()
+```
+
+```php
+// PHP
+$ch = curl_init("https://<project-ref>.supabase.co/functions/v1/device-ingest/v1/devices?page=1");
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer <GOVERN_API_KEY>"]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$body = json_decode(curl_exec($ch), true);
+```
+
+### Response shape
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "device_name": "DESKTOP-ABC123",
+      "serial_number": "SN12345",
+      "asset_type": "laptop",
+      "asset_owner": "Jane Smith",
+      "manufacturer": "Dell",
+      "model": "Latitude 5520",
+      "os_type": "Windows",
+      "os_version": "11.0.22621",
+      "os_edition": "Enterprise",
+      "status": "Active",
+      "source": "intune",
+      "ip_address": "192.168.1.42",
+      "mac_addresses": "AA:BB:CC:DD:EE:FF",
+      "last_seen_at": "2026-04-23T22:00:00Z",
+      "last_synced_at": "2026-04-24T02:00:00Z",
+      "asset_location": "London Office",
+      "domain_workgroup": "CORP",
+      "processor": "Intel Core i7-1185G7",
+      "memory": "16 GB",
+      "antivirus": "Microsoft Defender"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "page_size": 100,
+    "total_count": 243,
+    "total_pages": 3,
+    "has_next_page": true
+  }
+}
+```
+
+### Error responses
+
+| Status | Meaning |
+|--------|---------|
+| 401 | Missing or invalid `GOVERN_API_KEY` |
+| 400 | Invalid request (e.g. bad UUID format) |
+| 404 | Device not found |
+| 500 | Internal server error |
+
+### What you can and cannot do
+
+| | |
+|---|---|
+| Read device list (paginated) | Yes |
+| Read single device by ID | Yes |
+| Filter by `updated_since` | Yes |
+| Trigger a sync | No |
+| Write or update device records | No |

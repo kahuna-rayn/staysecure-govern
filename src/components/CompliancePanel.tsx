@@ -564,7 +564,7 @@ const CompliancePanel: React.FC = () => {
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Key Dates & Activities
-                <Badge variant="outline" className="ml-auto border-blue-500 text-blue-600">
+                <Badge variant="outline" className="ml-auto border-primary text-primary">
                   {filteredKeyDates.length} {filteredKeyDates.length === 1 ? 'activity' : 'activities'}
                 </Badge>
               </CardTitle>
@@ -604,7 +604,7 @@ const CompliancePanel: React.FC = () => {
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
                 Periodic Reviews
-                <Badge variant="outline" className="ml-auto border-green-500 text-green-600">
+                <Badge variant="outline" className="ml-auto border-secondary text-secondary">
                   {filteredPeriodicReviews.length} {filteredPeriodicReviews.length === 1 ? 'review' : 'reviews'}
                 </Badge>
               </CardTitle>

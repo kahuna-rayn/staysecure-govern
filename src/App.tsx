@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from 'staysecure-auth';
 import { LoginForm } from 'staysecure-auth';
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 import InventoryPanel from "@/components/InventoryPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import Dashboard from "@/components/Dashboard";
@@ -71,18 +72,18 @@ const AppContentRouter = () => {
   }, [location]);
 
   const dashboardContent = (
-    <div className="container mx-auto py-6 px-4 max-w-6xl">
+    <main className="max-w-6xl mx-auto px-6 py-8 flex-1 w-full">
       {currentView === 'dashboard' && <Dashboard />}
       {currentView === 'persona' && <PersonaProfileWrapper />}
       {currentView === 'compliance' && <CompliancePanel />}
       {currentView === 'inventory' && <InventoryPanel />}
       {currentView === 'breach-management' && <BreachManagementPanel />}
       {currentView === 'settings' && <SettingsPanel />}
-    </div>
+    </main>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-learning-background flex flex-col">
       <Navigation currentView={currentView} onViewChange={setCurrentView} />
       
       <Routes>
@@ -95,6 +96,7 @@ const AppContentRouter = () => {
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Footer />
     </div>
   );
 };
@@ -115,7 +117,7 @@ const AppContent = () => {
   if (!user) {
     debug.log('[AppContent] Rendering LoginForm with displayName:', clientConfig?.displayName, 'clientConfig:', clientConfig);
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-learning-background flex items-center justify-center p-4">
         <div className="w-full max-w-md relative">
           <LoginForm displayName={clientConfig?.displayName} />
         </div>
@@ -126,10 +128,10 @@ const AppContent = () => {
   // For users without admin permissions, show only their own profile
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto py-6 px-4 max-w-6xl">
+      <div className="min-h-screen bg-learning-background flex flex-col">
+        <main className="max-w-6xl mx-auto px-6 py-8 flex-1 w-full">
           <PersonaProfileWrapper />
-        </div>
+        </main>
       </div>
     );
   }

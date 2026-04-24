@@ -30,6 +30,10 @@ interface MetricDrillDownProps {
   phishingData?: any[];
   documentAssignments?: any[];
   documents?: any[];
+  cyberLearnersSet?: Set<string>;
+  dpeLearnersSet?: Set<string>;
+  completedLearnSet?: Set<string>;
+  completedPDPASet?: Set<string>;
 }
 
 const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
@@ -46,7 +50,11 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
   physicalLocationAccess,
   phishingData = [],
   documentAssignments = [],
-  documents = []
+  documents = [],
+  cyberLearnersSet = new Set(),
+  dpeLearnersSet = new Set(),
+  completedLearnSet = new Set(),
+  completedPDPASet = new Set(),
 }) => {
   const currentLevel = drillDownPath[drillDownPath.length - 1];
   const canDrillDown = currentLevel.level < metric.drillDownLevels.length;
@@ -87,10 +95,10 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
         return profiles.map(p => p.id);
       
       case 'cyber_learners':
-        return profiles.filter(p => p.cyber_learner === true).map(p => p.id);
+        return profiles.filter(p => cyberLearnersSet.has(p.id)).map(p => p.id);
       
       case 'data_protection_learners':
-        return profiles.filter(p => p.dpe_learner === true).map(p => p.id);
+        return profiles.filter(p => dpeLearnersSet.has(p.id)).map(p => p.id);
       
       case 'english_learners':
         return profiles.filter(p => p.language === 'English' || p.language === '').map(p => p.id);
@@ -99,20 +107,20 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
         return profiles.filter(p => p.language === 'Mandarin').map(p => p.id);
       
       case 'staff_enrolled_learn':
-        return profiles.filter(p => p.cyber_learner === true).map(p => p.id);
+        return profiles.filter(p => cyberLearnersSet.has(p.id)).map(p => p.id);
       
       case 'cyber_aware_percentage':
         // For cyber awareness, show ALL cyber learners (both completed and not completed)
-        return profiles.filter(p => p.cyber_learner === true).map(p => p.id);
+        return profiles.filter(p => cyberLearnersSet.has(p.id)).map(p => p.id);
       
       case 'data_protection_aware_percentage':
-        return profiles.filter(p => p.dpe_learner === true).map(p => p.id);
+        return profiles.filter(p => dpeLearnersSet.has(p.id)).map(p => p.id);
       
       case 'episode_completion':
-        return profiles.filter(p => p.learn_complete === true).map(p => p.id);
+        return profiles.filter(p => completedLearnSet.has(p.id)).map(p => p.id);
       
       case 'track_completion':
-        return profiles.filter(p => p.cyber_learner === true).map(p => p.id);
+        return profiles.filter(p => cyberLearnersSet.has(p.id)).map(p => p.id);
       
       // Protection metrics
       case 'total_endpoints':
@@ -203,21 +211,20 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
     }
     
     if (metric.type === 'percentage') {
-      // For percentage metrics, calculate based on the specific metric logic
       if (metric.id === 'staff_enrolled_learn') {
         const totalStaff = profiles.length;
         const enrolledStaff = relevantProfiles.length;
         return totalStaff > 0 ? Math.round((enrolledStaff / totalStaff) * 100) : 0;
       } else if (metric.id === 'cyber_aware_percentage') {
-        const enrolledStaff = profiles.filter(p => p.cyber_learner === true).length;
+        const enrolledStaff = profiles.filter(p => cyberLearnersSet.has(p.id)).length;
         const completedStaff = relevantProfiles.length;
         return enrolledStaff > 0 ? Math.round((completedStaff / enrolledStaff) * 100) : 0;
       } else if (metric.id === 'data_protection_aware_percentage') {
-        const enrolledStaff = profiles.filter(p => p.dpe_learner === true).length;
+        const enrolledStaff = profiles.filter(p => dpeLearnersSet.has(p.id)).length;
         const completedStaff = relevantProfiles.length;
         return enrolledStaff > 0 ? Math.round((completedStaff / enrolledStaff) * 100) : 0;
       } else if (metric.id === 'track_completion') {
-        const enrolledStaff = profiles.filter(p => p.cyber_learner === true).length;
+        const enrolledStaff = profiles.filter(p => cyberLearnersSet.has(p.id)).length;
         const completedStaff = relevantProfiles.length;
         return enrolledStaff > 0 ? Math.round((completedStaff / enrolledStaff) * 100) : 0;
       }
@@ -242,37 +249,35 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
       case 'total_staff':
         return profileSubset.length;
       case 'cyber_learners':
-        return profileSubset.filter(p => p.cyber_learner === true).length;
+        return profileSubset.filter(p => cyberLearnersSet.has(p.id)).length;
       case 'data_protection_learners':
-        return profileSubset.filter(p => p.dpe_learner === true).length;
-      case 'cyber_quiz_score':
-        const cyberScores = profileSubset.filter(p => p.cyber_learner).map(() => Math.floor(Math.random() * 40) + 60);
-        return cyberScores.length > 0 ? Math.round(cyberScores.reduce((a, b) => a + b, 0) / cyberScores.length) : 0;
-      case 'data_protection_quiz_score':
-        const dpeScores = profileSubset.filter(p => p.dpe_learner).map(() => Math.floor(Math.random() * 40) + 60);
-        return dpeScores.length > 0 ? Math.round(dpeScores.reduce((a, b) => a + b, 0) / dpeScores.length) : 0;
+        return profileSubset.filter(p => dpeLearnersSet.has(p.id)).length;
       case 'english_learners':
         return profileSubset.filter(p => p.language === 'English' || p.language === '').length;
       case 'mandarin_learners':
         return profileSubset.filter(p => p.language === 'Mandarin').length;
-      case 'enrolled_percentage':
+      case 'enrolled_percentage': {
         const total = profileSubset.length;
-        const enrolled = profileSubset.filter(p => p.cyber_learner === true).length;
+        const enrolled = profileSubset.filter(p => cyberLearnersSet.has(p.id)).length;
         return total > 0 ? Math.round((enrolled / total) * 100) : 0;
-      case 'cyber_aware_percentage':
-        const cyberLearners = profileSubset.filter(p => p.cyber_learner === true).length;
-        const completed = profileSubset.filter(p => p.learn_complete === true).length;
-        return cyberLearners > 0 ? Math.round((completed / cyberLearners) * 100) : 0;
-      case 'data_protection_aware_percentage':
-        const dpeLearners = profileSubset.filter(p => p.dpe_learner === true).length;
-        const dpeCompleted = profileSubset.filter(p => p.dpe_complete === true).length;
-        return dpeLearners > 0 ? Math.round((dpeCompleted / dpeLearners) * 100) : 0;
+      }
+      case 'cyber_aware_percentage': {
+        const cyberInSubset = profileSubset.filter(p => cyberLearnersSet.has(p.id)).length;
+        const completedInSubset = profileSubset.filter(p => completedLearnSet.has(p.id)).length;
+        return cyberInSubset > 0 ? Math.round((completedInSubset / cyberInSubset) * 100) : 0;
+      }
+      case 'data_protection_aware_percentage': {
+        const dpeInSubset = profileSubset.filter(p => dpeLearnersSet.has(p.id)).length;
+        const dpeCompletedInSubset = profileSubset.filter(p => completedPDPASet.has(p.id)).length;
+        return dpeInSubset > 0 ? Math.round((dpeCompletedInSubset / dpeInSubset) * 100) : 0;
+      }
       case 'episode_completion':
-        return profileSubset.filter(p => p.learn_complete === true).length;
-      case 'track_completion':
-        const trackEnrolled = profileSubset.filter(p => p.cyber_learner === true).length;
-        const trackCompleted = profileSubset.filter(p => p.learn_complete === true).length;
+        return profileSubset.filter(p => completedLearnSet.has(p.id)).length;
+      case 'track_completion': {
+        const trackEnrolled = profileSubset.filter(p => cyberLearnersSet.has(p.id)).length;
+        const trackCompleted = profileSubset.filter(p => completedLearnSet.has(p.id)).length;
         return trackEnrolled > 0 ? Math.round((trackCompleted / trackEnrolled) * 100) : 0;
+      }
       default:
         return 0;
     }
@@ -300,54 +305,44 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
     let className = '';
 
     switch (statusText) {
-      // Positive/Complete statuses - Green (custom styling)
       case 'Completed':
         variant = 'default';
-        className = 'bg-green-600 text-white border-green-600 hover:bg-green-700';
+        className = 'bg-green-100 text-green-700 border-green-200';
         break;
       
-      // In Progress/Partial statuses - Blue/Secondary
       case 'Enrolled':
-        variant = 'secondary';
+        variant = 'default';
+        className = 'bg-green-100 text-green-700 border-green-200';
         break;
       
-      // Negative/Incomplete statuses - Red
       case 'Not Enrolled':
         variant = 'destructive';
+        className = 'bg-red-100 text-red-700 border-red-200';
         break;
       
-      // Language categories - Neutral outline
       case 'English':
       case 'Mandarin':
         variant = 'outline';
         break;
         
-      // Asset count statuses - All blue for consistency
       case 'No Devices':
       case 'No Software':
       case 'No Access':
       case 'None Recent':
-        variant = 'destructive'; // Red for no assets
-        break;
-        
-      case '1 Device':
-      case '1 App':
-      case '1 Location':
-        variant = 'secondary'; // Blue for single asset
-        className = 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700';
+        variant = 'destructive';
+        className = 'bg-red-100 text-red-700 border-red-200';
         break;
         
       default:
-        // For asset counts ("2 Devices", "3 Apps", "2 Recent", "2 Locations", etc.) - all blue for consistency
         if (statusText.includes('Device') || statusText.includes('App') || statusText.includes('Recent') || statusText.includes('Location')) {
-          variant = 'secondary'; // Blue for all asset counts
-          className = 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700';
+          variant = 'secondary';
+          className = 'bg-blue-100 text-blue-700 border-blue-200';
         } else if (statusText !== '' && !statusText.includes('No')) {
-          // For other non-asset statuses, keep green
-          variant = 'default'; 
-          className = 'bg-green-600 text-white border-green-600 hover:bg-green-700';
+          variant = 'default';
+          className = 'bg-green-100 text-green-700 border-green-200';
         } else {
           variant = 'secondary';
+          className = 'bg-gray-100 text-gray-600 border-gray-200';
         }
         break;
     }
@@ -357,40 +352,26 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
 
   const getStaffStatusText = (profile: any, metricId: string): string => {
 
-    
-    // Helper function to check boolean values that might be stored as strings
-    const isTruthy = (value: any): boolean => {
-      if (typeof value === 'boolean') return value;
-      if (typeof value === 'string') return value.toLowerCase() === 'true';
-      return false;
-    };
-    
     switch (metricId) {
       // Completion-based metrics
       case 'cyber_aware_percentage':
       case 'episode_completion':
       case 'track_completion':
-        // These users are already filtered to be cyber_learners
-        const completedStatus = isTruthy(profile.learn_complete);
-        return completedStatus ? 'Completed' : 'Enrolled';
+        return completedLearnSet.has(profile.id) ? 'Completed' : 'Enrolled';
 
       case 'data_protection_aware_percentage':
-        // These users are already filtered to be dpe_learners
-        const dpeCompletedStatus = isTruthy(profile.dpe_complete);
-        return dpeCompletedStatus ? 'Completed' : 'Enrolled';
+        return completedPDPASet.has(profile.id) ? 'Completed' : 'Enrolled';
 
-      // Enrollment/category-based metrics - but show completion status when available
+      // Enrollment/category-based metrics - show completion status when available
       case 'total_staff':
-        return isTruthy(profile.cyber_learner) ? 'Enrolled' : 'Not Enrolled';
+        return cyberLearnersSet.has(profile.id) ? 'Enrolled' : 'Not Enrolled';
       
       case 'cyber_learners':
       case 'staff_enrolled_learn':
-        // For cyber learners, show completion status since we have that data
-        return isTruthy(profile.learn_complete) ? 'Completed' : 'Enrolled';
+        return completedLearnSet.has(profile.id) ? 'Completed' : 'Enrolled';
 
       case 'data_protection_learners':
-        // For data protection learners, show completion status since we have that data
-        return isTruthy(profile.dpe_complete) ? 'Completed' : 'Enrolled';
+        return completedPDPASet.has(profile.id) ? 'Completed' : 'Enrolled';
 
       case 'english_learners':
         return 'English';
@@ -472,18 +453,18 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
   };
 
   const renderBreadcrumb = () => (
-    <div className="flex items-center gap-2 mb-6">
+    <div className="flex items-center gap-1 text-sm flex-wrap mb-6">
       {drillDownPath.map((level, index) => (
-        <div key={index} className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
+        <div key={index} className="flex items-center gap-1">
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => onDrillDown(level.level, level.data, level.title, level.type)}
-            className="text-muted-foreground hover:text-foreground"
+            className={index === drillDownPath.length - 1 ? 'font-semibold text-foreground' : 'text-learning-primary'}
           >
             {level.title}
           </Button>
-          {index < drillDownPath.length - 1 && <ChevronRight className="h-4 w-4" />}
+          {index < drillDownPath.length - 1 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
         </div>
       ))}
     </div>
@@ -520,17 +501,20 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
         return (
           <Card key={location} className="cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => onDrillDown(currentLevel.level + 1, locationProfiles, location, 'location', value)}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{location || 'Unknown Location'}</CardTitle>
-              <MapPin className="h-4 w-4" />
-            </CardHeader>
-            <CardContent>
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className={`text-xl font-bold ${getColorClass(metric.type, value)}`}>
-                  {formatValue(value, metric.type)}
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-medium">{location || 'Unknown Location'}</div>
+                    <div className="text-sm text-muted-foreground">{locationRelevantProfiles.length} relevant staff</div>
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {locationRelevantProfiles.length} relevant staff
+                <div className="flex items-center gap-2">
+                  <div className={`text-xl font-bold ${getColorClass(metric.type, value)}`}>
+                    {formatValue(value, metric.type)}
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
               </div>
             </CardContent>
@@ -605,17 +589,20 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
           return (
             <Card key={department} className="cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => onDrillDown(currentLevel.level + 1, allProfilesInDept, department, 'department', departmentValue)}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{department}</CardTitle>
-                <Building className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className={`text-xl font-bold ${getColorClass(metric.type, departmentValue)}`}>
-                    {formatValue(departmentValue, metric.type)}
+                  <div className="flex items-center gap-3">
+                    <Building className="h-5 w-5 text-secondary" />
+                    <div>
+                      <div className="font-medium">{department}</div>
+                      <div className="text-sm text-muted-foreground">{relevantProfilesInDept.length} of {allProfilesInDept.length} staff</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {relevantProfilesInDept.length} of {allProfilesInDept.length} relevant
+                  <div className="flex items-center gap-2">
+                    <div className={`text-xl font-bold ${getColorClass(metric.type, departmentValue)}`}>
+                      {formatValue(departmentValue, metric.type)}
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
               </CardContent>
@@ -667,26 +654,67 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
 
     if (levelName?.toLowerCase().includes('organization')) {
       const overallValue = metric.getValue(profiles);
+      const relevantUserIds = getRelevantUserIds();
+      const relevantProfiles = profiles.filter(p => relevantUserIds.includes(p.id));
+      const locationCount = [...new Set(relevantProfiles.map(p => p.location).filter(Boolean))].length;
+      const deptCount = [...new Set(relevantProfiles.map(p => departmentData.get(p.id)).filter(Boolean))].length;
+
       return (
-        <div>
-          <h2 className="text-lg font-semibold mb-2">Organization Level</h2>
-          <Card className="mb-6 w-1/2">
+        <div className="space-y-6">
+          <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="mr-2 h-5 w-5" />
-                  Organization Overview
-                </CardTitle>
-                <div className={`text-3xl font-bold ${getColorClass(metric.type, overallValue)}`}>
-                  {formatValue(overallValue, metric.type)}
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">Total across all locations and departments</p>
+              <CardTitle className="flex items-center gap-2">
+                {metric.icon}
+                {metric.title}
+              </CardTitle>
             </CardHeader>
+            <CardContent>
+              <div className={`text-4xl font-bold ${getColorClass(metric.type, overallValue)}`}>
+                {formatValue(overallValue, metric.type)}
+              </div>
+              <p className="text-muted-foreground mt-2">
+                Across {profiles.length} staff member{profiles.length !== 1 ? 's' : ''}
+              </p>
+            </CardContent>
           </Card>
 
-          <h2 className="text-lg font-semibold mb-4">Location</h2>
-          {renderLocationDrillDown()}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => onDrillDown(currentLevel.level + 1, profiles, 'By Location', 'location')}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  <span className="font-medium">View by Location</span>
+                </div>
+                <div className="text-2xl font-bold">{locationCount}</div>
+                <p className="text-sm text-muted-foreground">location{locationCount !== 1 ? 's' : ''} with data</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => onDrillDown(currentLevel.level + 1, profiles, 'By Department', 'department')}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Building className="h-5 w-5 text-secondary" />
+                  <span className="font-medium">View by Department</span>
+                </div>
+                <div className="text-2xl font-bold">{deptCount}</div>
+                <p className="text-sm text-muted-foreground">department{deptCount !== 1 ? 's' : ''} with data</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => onDrillDown(currentLevel.level + 1, relevantProfiles, 'Staff List', 'staff')}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Users className="h-5 w-5 text-accent" />
+                  <span className="font-medium">View Staff List</span>
+                </div>
+                <div className="text-2xl font-bold">{relevantProfiles.length}</div>
+                <p className="text-sm text-muted-foreground">staff members</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       );
     }
@@ -694,22 +722,24 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
     if (levelName?.toLowerCase().includes('location')) {
       const locationValue = currentLevel.value ?? calculateMetricValue(currentLevel.data);
       return (
-        <div>
-          <Card className="mb-6 w-1/2">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center">
-                  <MapPin className="mr-2 h-5 w-5" />
-                  {currentLevel.title} Overview
-                </CardTitle>
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-medium">{currentLevel.title}</div>
+                    <div className="text-sm text-muted-foreground">Total for this location</div>
+                  </div>
+                </div>
                 <div className={`text-3xl font-bold ${getColorClass(metric.type, locationValue)}`}>
                   {formatValue(locationValue, metric.type)}
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Total for this location</p>
-            </CardHeader>
+            </CardContent>
           </Card>
-          <h2 className="text-lg font-semibold mb-4">Departments</h2>
+          <h2 className="text-lg font-semibold">Departments</h2>
           {renderDepartmentDrillDown()}
         </div>
       );
@@ -718,22 +748,24 @@ const MetricDrillDown: React.FC<MetricDrillDownProps> = ({
     if (levelName?.toLowerCase().includes('department')) {
       const departmentValue = currentLevel.value ?? calculateMetricValue(currentLevel.data);
       return (
-        <div>
-          <Card className="mb-6 w-1/2">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center">
-                  <Building className="mr-2 h-5 w-5" />
-                  {currentLevel.title} Overview
-                </CardTitle>
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Building className="h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium">{currentLevel.title}</div>
+                    <div className="text-sm text-muted-foreground">Total for this department</div>
+                  </div>
+                </div>
                 <div className={`text-3xl font-bold ${getColorClass(metric.type, departmentValue)}`}>
                   {formatValue(departmentValue, metric.type)}
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Total for this department</p>
-            </CardHeader>
+            </CardContent>
           </Card>
-          <h2 className="text-lg font-semibold mb-4">Staff</h2>
+          <h2 className="text-lg font-semibold">Staff</h2>
           {renderStaffList()}
         </div>
       );

@@ -89,7 +89,7 @@ export function NewRowForm<T extends { id: string }>({
   };
 
   return (
-    <tr className="border-b bg-blue-50">
+    <tr className="border-b bg-muted">
       {columns.map((column) => (
         <td key={column.key} className="p-2 align-middle">
           {renderNewRowCell(column)}

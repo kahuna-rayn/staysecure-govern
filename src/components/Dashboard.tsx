@@ -243,6 +243,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
     },
   });
 
+  // ── Track progress — enrolment and completion per track_type ────────────────
+  const { data: trackProgressData = [] } = useQuery({
+    queryKey: ['dashboard-track-progress'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_learning_track_progress')
+        .select('user_id, progress_percentage, completed_at, learning_tracks(track_type)');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -251,12 +263,37 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
     );
   }
 
-  // Calculate learning metrics from profiles
+  // ── Learning metrics derived from track progress (replacing profile columns) ─
   const totalStaff = profiles.length;
-  const cyberLearners = profiles.filter(p => p.cyber_learner === true).length;
-  const dataProtectionLearners = profiles.filter(p => p.dpe_learner === true).length;
-  const completedLearn = profiles.filter(p => p.learn_complete === true).length;
-  const completedPDPA = profiles.filter(p => p.dpe_complete === true).length;
+
+  const cyberLearnersSet = new Set(
+    trackProgressData
+      .filter(tp => (tp.learning_tracks as any)?.track_type === 'cyber')
+      .map(tp => tp.user_id)
+  );
+  const dpeLearnersSet = new Set(
+    trackProgressData
+      .filter(tp => (tp.learning_tracks as any)?.track_type === 'dpe')
+      .map(tp => tp.user_id)
+  );
+  const completedLearnSet = new Set(
+    trackProgressData
+      .filter(tp => (tp.progress_percentage ?? 0) >= 100 || tp.completed_at != null)
+      .map(tp => tp.user_id)
+  );
+  const completedPDPASet = new Set(
+    trackProgressData
+      .filter(tp =>
+        (tp.learning_tracks as any)?.track_type === 'dpe' &&
+        ((tp.progress_percentage ?? 0) >= 100 || tp.completed_at != null)
+      )
+      .map(tp => tp.user_id)
+  );
+
+  const cyberLearners = cyberLearnersSet.size;
+  const dataProtectionLearners = dpeLearnersSet.size;
+  const completedLearn = completedLearnSet.size;
+  const completedPDPA = completedPDPASet.size;
 
   // Calculate unique locations and departments for drill-downs
   const locations = [...new Set(profiles.map(p => p.location).filter(Boolean))];
@@ -466,7 +503,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
       id: 'cyber_aware_percentage',
       title: '% staff cyber security aware',
       icon: <Shield size={24} className="h-6 w-6" />,
-      getValue: () => cyberLearners > 0 ? Math.round((profiles.filter(p => p.learn_complete === true).length / cyberLearners) * 100) : 0,
+      getValue: () => cyberLearners > 0 ? Math.round((completedLearn / cyberLearners) * 100) : 0,
       drillDownLevels: ['Organization', 'Location', 'Department', 'Staff List'],
       type: 'percentage' as const
     },
@@ -474,7 +511,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
       id: 'data_protection_aware_percentage',
       title: '% staff data protection aware',
       icon: <FileText size={24} className="h-6 w-6" />,
-      getValue: () => dataProtectionLearners > 0 ? Math.round((profiles.filter(p => p.dpe_complete === true).length / dataProtectionLearners) * 100) : 0,
+      getValue: () => dataProtectionLearners > 0 ? Math.round((completedPDPA / dataProtectionLearners) * 100) : 0,
       drillDownLevels: ['Organization', 'Location', 'Department', 'Staff List'],
       type: 'percentage' as const
     },
@@ -482,7 +519,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
       id: 'episode_completion',
       title: 'Staff who completed learn',
       icon: <TrendingUp size={24} className="h-6 w-6" />,
-      getValue: () => profiles.filter(p => p.learn_complete === true).length,
+      getValue: () => completedLearn,
       drillDownLevels: ['Organization', 'Location', 'Department', 'Staff List'],
       type: 'count' as const
     },
@@ -490,7 +527,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
       id: 'data_protection_completion',
       title: 'Staff who completed data protection',
       icon: <TrendingUp size={24} className="h-6 w-6" />,
-      getValue: () => profiles.filter(p => p.dpe_complete === true).length,
+      getValue: () => completedPDPA,
       drillDownLevels: ['Organization', 'Location', 'Department', 'Staff List'],
       type: 'count' as const
     }
@@ -968,6 +1005,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
           phishingData={phishingData}
           documentAssignments={documentAssignments}
           documents={documents}
+          cyberLearnersSet={cyberLearnersSet}
+          dpeLearnersSet={dpeLearnersSet}
+          completedLearnSet={completedLearnSet}
+          completedPDPASet={completedPDPASet}
         />
       </div>
     );
@@ -979,39 +1020,39 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
 
       {/* Overall Score and Category Scores */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-green-50 border-green-200">
+        <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-lg font-medium">Cybersecurity Score</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="text-6xl font-bold text-gray-900 mb-1">{overallScore}<span className="text-2xl text-gray-600">/850</span></div>
+            <div className="text-6xl font-bold text-foreground mb-1">{overallScore}<span className="text-2xl text-muted-foreground">/850</span></div>
             <div className={`text-lg font-semibold ${getRiskLevel(overallScore).color}`}>
               {getRiskLevel(overallScore).label}
             </div>
-            <div className="text-sm text-gray-600 mb-2">
+            <div className="text-sm text-muted-foreground mb-2">
               {overallScore >= 800 ? 'Mature cybersecurity program; strong controls in place' :
                overallScore >= 740 ? 'Good security posture; minor gaps may exist' :
                overallScore >= 670 ? 'Basic security controls in place; moderate exposure' :
                overallScore >= 580 ? 'Weak security hygiene; multiple vulnerabilities likely' :
                'Severely lacking security defenses; major gaps may be unmitigated'}
             </div>
-            <div className="text-sm text-gray-500">Score Range: 300-850</div>
+            <div className="text-sm text-muted-foreground">Score Range: 300-850</div>
           </CardContent>
         </Card>
 
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
-            <div className="flex justify-between items-center p-4 bg-white rounded-lg border">
-              <span className="text-sm font-medium text-gray-700">Education</span>
-              <span className="text-2xl font-bold text-gray-900">{educationScore}</span>
+            <div className="flex justify-between items-center p-4 bg-card rounded-lg border">
+              <span className="text-sm font-medium text-foreground">Education</span>
+              <span className="text-2xl font-bold text-foreground">{educationScore}</span>
             </div>
-            <div className="flex justify-between items-center p-4 bg-white rounded-lg border">
-              <span className="text-sm font-medium text-gray-700">Protection</span>
-              <span className="text-2xl font-bold text-gray-900">{protectionScore}</span>
+            <div className="flex justify-between items-center p-4 bg-card rounded-lg border">
+              <span className="text-sm font-medium text-foreground">Protection</span>
+              <span className="text-2xl font-bold text-foreground">{protectionScore}</span>
             </div>
-            <div className="flex justify-between items-center p-4 bg-white rounded-lg border">
-              <span className="text-sm font-medium text-gray-700">Readiness</span>
-              <span className="text-2xl font-bold text-gray-900">{readinessScore}</span>
+            <div className="flex justify-between items-center p-4 bg-card rounded-lg border">
+              <span className="text-sm font-medium text-foreground">Readiness</span>
+              <span className="text-2xl font-bold text-foreground">{readinessScore}</span>
             </div>
           </div>
         </div>
@@ -1194,7 +1235,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
               {educationMetrics.filter(metric => metric.type === 'count').map((metric) => {
                 const value = metric.getValue();
                 return (
-                  <Card key={metric.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleMetricClick(metric.id)}>
+                  <Card key={metric.id} className="group cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all" onClick={() => handleMetricClick(metric.id)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                       {metric.icon}
@@ -1205,11 +1246,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                           <div className={`text-2xl font-bold ${getColorClass(metric.type, value)}`}>
                             {formatValue(value, metric.type)}
                           </div>
-                          <Badge variant="secondary" className="text-xs mt-1">
-                            Click for details
-                          </Badge>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-learning-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </CardContent>
                   </Card>
@@ -1225,7 +1263,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
               {educationMetrics.filter(metric => metric.type === 'percentage').map((metric) => {
                 const value = metric.getValue();
                 return (
-                  <Card key={metric.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleMetricClick(metric.id)}>
+                  <Card key={metric.id} className="group cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all" onClick={() => handleMetricClick(metric.id)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                       {metric.icon}
@@ -1236,11 +1274,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                           <div className={`text-2xl font-bold ${getColorClass(metric.type, value)}`}>
                             {formatValue(value, metric.type)}
                           </div>
-                          <Badge variant="secondary" className="text-xs mt-1">
-                            Click for details
-                          </Badge>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-learning-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </CardContent>
                   </Card>
@@ -1258,7 +1293,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
               {protectionMetrics.filter(metric => metric.type === 'count').map((metric) => {
                 const value = metric.getValue();
                 return (
-                  <Card key={metric.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleMetricClick(metric.id)}>
+                  <Card key={metric.id} className="group cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all" onClick={() => handleMetricClick(metric.id)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                       {metric.icon}
@@ -1269,11 +1304,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                           <div className={`text-2xl font-bold ${getColorClass(metric.type, value)}`}>
                             {formatValue(value, metric.type)}
                           </div>
-                          <Badge variant="secondary" className="text-xs mt-1">
-                            Click for details
-                          </Badge>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-learning-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </CardContent>
                   </Card>
@@ -1289,7 +1321,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
               {protectionMetrics.filter(metric => metric.type === 'percentage').map((metric) => {
                 const value = metric.getValue();
                 return (
-                  <Card key={metric.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleMetricClick(metric.id)}>
+                  <Card key={metric.id} className="group cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all" onClick={() => handleMetricClick(metric.id)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                       {metric.icon}
@@ -1300,11 +1332,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                           <div className={`text-2xl font-bold ${getColorClass(metric.type, value)}`}>
                             {formatValue(value, metric.type)}
                           </div>
-                          <Badge variant="secondary" className="text-xs mt-1">
-                            Click for details
-                          </Badge>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-learning-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </CardContent>
                   </Card>
@@ -1326,7 +1355,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
               ].filter(Boolean).map((metric) => {
                 const value = metric.getValue();
                 return (
-                  <Card key={metric.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleMetricClick(metric.id)}>
+                  <Card key={metric.id} className="group cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all" onClick={() => handleMetricClick(metric.id)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                       {metric.type === 'binary' ? getBinaryIcon(value as string) : metric.icon}
@@ -1335,9 +1364,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                       <div className="flex items-center justify-between">
                         <div>
                           <div className={`text-2xl font-bold ${getColorClass(metric.type, value)}`}>{formatValue(value, metric.type)}</div>
-                          <Badge variant="secondary" className="text-xs mt-1">{metric.drillDownLevels.length} levels</Badge>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-learning-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </CardContent>
                   </Card>
@@ -1354,7 +1382,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
               ].filter(Boolean).map((metric) => {
                 const value = metric.getValue();
                 return (
-                  <Card key={metric.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleMetricClick(metric.id)}>
+                  <Card key={metric.id} className="group cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all" onClick={() => handleMetricClick(metric.id)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                       {metric.icon}
@@ -1363,9 +1391,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                       <div className="flex items-center justify-between">
                         <div>
                           <div className={`text-2xl font-bold ${getColorClass(metric.type, value)}`}>{formatValue(value, metric.type)}</div>
-                          <Badge variant="secondary" className="text-xs mt-1">{metric.drillDownLevels.length} levels</Badge>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-learning-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </CardContent>
                   </Card>
@@ -1382,7 +1409,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
               ].filter(Boolean).map((metric) => {
                 const value = metric.getValue();
                 return (
-                  <Card key={metric.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleMetricClick(metric.id)}>
+                  <Card key={metric.id} className="group cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all" onClick={() => handleMetricClick(metric.id)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                       {metric.icon}
@@ -1391,9 +1418,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                       <div className="flex items-center justify-between">
                         <div>
                           <div className={`text-2xl font-bold ${getColorClass(metric.type, value)}`}>{formatValue(value, metric.type)}</div>
-                          <Badge variant="secondary" className="text-xs mt-1">{metric.drillDownLevels.length} levels</Badge>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-learning-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </CardContent>
                   </Card>
@@ -1408,7 +1434,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
               {readinessPerformanceMetrics.map((metric) => {
                 const value = metric.getValue();
                 return (
-                  <Card key={metric.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleMetricClick(metric.id)}>
+                  <Card key={metric.id} className="group cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all" onClick={() => handleMetricClick(metric.id)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                       {metric.icon}
@@ -1417,9 +1443,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
                       <div className="flex items-center justify-between">
                         <div>
                           <div className={`text-2xl font-bold ${getColorClass(metric.type, value)}`}>{formatValue(value, metric.type)}</div>
-                          <Badge variant="secondary" className="text-xs mt-1">{metric.drillDownLevels.length} levels</Badge>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-learning-primary group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </CardContent>
                   </Card>

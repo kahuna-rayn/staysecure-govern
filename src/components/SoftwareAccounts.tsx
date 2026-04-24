@@ -139,9 +139,9 @@ const SoftwareAccounts: React.FC<SoftwareAccountsProps> = ({ profile }) => {
     if (role === 'Admin') {
       badgeClassName += 'bg-red-600 text-white hover:bg-red-700';
     } else if (role === 'User') {
-      badgeClassName += 'bg-blue-600 text-white hover:bg-blue-700';
+      badgeClassName += 'bg-primary text-primary-foreground hover:bg-primary/90';
     } else {
-      badgeClassName += 'bg-gray-600 text-white hover:bg-gray-700';
+      badgeClassName += 'bg-muted-foreground text-primary-foreground hover:bg-muted-foreground/90';
     }
 
     return (

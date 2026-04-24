@@ -148,12 +148,12 @@ const HardwareManagement: React.FC = () => {
               </div>
 
               {selectedHardwareItem && (
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="font-medium mb-2 text-blue-900">Assignment Details:</h4>
-                  <p className="text-sm text-blue-700"><strong>Device:</strong> {selectedHardwareItem.device_name}</p>
-                  <p className="text-sm text-blue-700"><strong>Type:</strong> {selectedHardwareItem.asset_type}</p>
-                  <p className="text-sm text-blue-700"><strong>Serial Number:</strong> {selectedHardwareItem.serial_number}</p>
-                  <p className="text-sm text-blue-700"><strong>Location:</strong> {selectedHardwareItem.asset_location || 'Not specified'}</p>
+                <div className="p-3 bg-muted rounded-lg border">
+                  <h4 className="font-medium mb-2 text-foreground">Assignment Details:</h4>
+                  <p className="text-sm text-foreground"><strong>Device:</strong> {selectedHardwareItem.device_name}</p>
+                  <p className="text-sm text-foreground"><strong>Type:</strong> {selectedHardwareItem.asset_type}</p>
+                  <p className="text-sm text-foreground"><strong>Serial Number:</strong> {selectedHardwareItem.serial_number}</p>
+                  <p className="text-sm text-foreground"><strong>Location:</strong> {selectedHardwareItem.asset_location || 'Not specified'}</p>
                 </div>
               )}
 
