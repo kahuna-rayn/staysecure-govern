@@ -7,10 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -24,6 +24,7 @@ export type Database = {
           date_access_created: string | null
           date_access_revoked: string | null
           department: string | null
+          email: string
           full_name: string
           id: string
           modified_at: string | null
@@ -32,7 +33,6 @@ export type Database = {
           software: string | null
           status: string | null
           user_id: string | null
-          email: string
         }
         Insert: {
           approval_status?: string | null
@@ -43,6 +43,7 @@ export type Database = {
           date_access_created?: string | null
           date_access_revoked?: string | null
           department?: string | null
+          email: string
           full_name: string
           id?: string
           modified_at?: string | null
@@ -51,7 +52,6 @@ export type Database = {
           software?: string | null
           status?: string | null
           user_id?: string | null
-          email: string
         }
         Update: {
           approval_status?: string | null
@@ -62,6 +62,7 @@ export type Database = {
           date_access_created?: string | null
           date_access_revoked?: string | null
           department?: string | null
+          email?: string
           full_name?: string
           id?: string
           modified_at?: string | null
@@ -70,9 +71,16 @@ export type Database = {
           software?: string | null
           status?: string | null
           user_id?: string | null
-          email?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "account_inventory_authorized_by_fkey"
+            columns: ["authorized_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       breach_management_team: {
         Row: {
@@ -170,18 +178,11 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "breach_team_members_breach_team_id_fkey"
-            columns: ["breach_team_id"]
-            isOneToOne: false
-            referencedRelation: "breach_management_team"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       certificates: {
         Row: {
+          certificate_url: string | null
           created_at: string
           credential_id: string | null
           date_acquired: string
@@ -196,6 +197,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          certificate_url?: string | null
           created_at?: string
           credential_id?: string | null
           date_acquired: string
@@ -210,6 +212,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          certificate_url?: string | null
           created_at?: string
           credential_id?: string | null
           date_acquired?: string
@@ -294,6 +297,87 @@ export type Database = {
           question_id?: string
           recommendation?: string | null
           type?: string | null
+        }
+        Relationships: []
+      }
+      customer_product_licenses: {
+        Row: {
+          customer_id: string
+          end_date: string | null
+          id: string
+          language: string
+          product_id: string
+          seats: number
+          start_date: string | null
+          term: number
+        }
+        Insert: {
+          customer_id: string
+          end_date?: string | null
+          id?: string
+          language: string
+          product_id: string
+          seats: number
+          start_date?: string | null
+          term: number
+        }
+        Update: {
+          customer_id?: string
+          end_date?: string | null
+          id?: string
+          language?: string
+          product_id?: string
+          seats?: number
+          start_date?: string | null
+          term?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_product_licenses_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_product_licenses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          customer_name: string
+          email: string | null
+          has_learn: boolean | null
+          id: string
+          is_active: boolean | null
+          primary_contact: string | null
+          short_name: string
+          supabase_project_ref: string | null
+        }
+        Insert: {
+          customer_name: string
+          email?: string | null
+          has_learn?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          primary_contact?: string | null
+          short_name: string
+          supabase_project_ref?: string | null
+        }
+        Update: {
+          customer_name?: string
+          email?: string | null
+          has_learn?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          primary_contact?: string | null
+          short_name?: string
+          supabase_project_ref?: string | null
         }
         Relationships: []
       }
@@ -474,6 +558,7 @@ export type Database = {
           due_days: number | null
           file_name: string | null
           file_type: string | null
+          is_system: boolean
           required: boolean
           title: string
           updated_at: string
@@ -488,6 +573,7 @@ export type Database = {
           due_days?: number | null
           file_name?: string | null
           file_type?: string | null
+          is_system?: boolean
           required?: boolean
           title: string
           updated_at?: string
@@ -502,6 +588,7 @@ export type Database = {
           due_days?: number | null
           file_name?: string | null
           file_type?: string | null
+          is_system?: boolean
           required?: boolean
           title?: string
           updated_at?: string
@@ -510,44 +597,251 @@ export type Database = {
         }
         Relationships: []
       }
-      hardware: {
+      email_layouts: {
         Row: {
-          assigned_date: string
-          created_at: string
+          brand_colors: Json | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          html_layout: string
           id: string
-          model: string
-          serial_number: string
+          is_active: boolean | null
+          is_default: boolean | null
+          is_system: boolean | null
+          last_used_at: string | null
+          layout_variables: Json | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          brand_colors?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          html_layout: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          is_system?: boolean | null
+          last_used_at?: string | null
+          layout_variables?: Json | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          brand_colors?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          html_layout?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          is_system?: boolean | null
+          last_used_at?: string | null
+          layout_variables?: Json | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      email_notifications: {
+        Row: {
+          created_at: string | null
+          email: string
+          error_message: string | null
+          id: string
+          message: string
+          retry_count: number | null
+          scheduled_for: string | null
+          sent_at: string | null
           status: string
+          title: string
           type: string
-          updated_at: string
           user_id: string
         }
         Insert: {
-          assigned_date?: string
-          created_at?: string
+          created_at?: string | null
+          email: string
+          error_message?: string | null
           id?: string
-          model: string
-          serial_number: string
+          message: string
+          retry_count?: number | null
+          scheduled_for?: string | null
+          sent_at?: string | null
           status?: string
+          title: string
           type: string
-          updated_at?: string
           user_id: string
         }
         Update: {
-          assigned_date?: string
-          created_at?: string
+          created_at?: string | null
+          email?: string
+          error_message?: string | null
           id?: string
-          model?: string
-          serial_number?: string
+          message?: string
+          retry_count?: number | null
+          scheduled_for?: string | null
+          sent_at?: string | null
           status?: string
+          title?: string
           type?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: []
       }
+      email_preferences: {
+        Row: {
+          achievements: boolean | null
+          created_at: string | null
+          created_by: string | null
+          document_completed_manager: boolean | null
+          document_notifications: boolean | null
+          email_enabled: boolean | null
+          id: string
+          include_upcoming_lessons: boolean | null
+          lesson_reminders: boolean | null
+          max_reminder_attempts: number | null
+          quiet_hours_enabled: boolean | null
+          quiet_hours_end_time: string | null
+          quiet_hours_start_time: string | null
+          reminder_days_before: number | null
+          reminder_frequency_days: number | null
+          reminder_time: string | null
+          system_alerts: boolean | null
+          task_due_dates: boolean | null
+          track_completions: boolean | null
+          upcoming_days_ahead: number | null
+          updated_at: string | null
+          updated_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          achievements?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          document_completed_manager?: boolean | null
+          document_notifications?: boolean | null
+          email_enabled?: boolean | null
+          id?: string
+          include_upcoming_lessons?: boolean | null
+          lesson_reminders?: boolean | null
+          max_reminder_attempts?: number | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end_time?: string | null
+          quiet_hours_start_time?: string | null
+          reminder_days_before?: number | null
+          reminder_frequency_days?: number | null
+          reminder_time?: string | null
+          system_alerts?: boolean | null
+          task_due_dates?: boolean | null
+          track_completions?: boolean | null
+          upcoming_days_ahead?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          achievements?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          document_completed_manager?: boolean | null
+          document_notifications?: boolean | null
+          email_enabled?: boolean | null
+          id?: string
+          include_upcoming_lessons?: boolean | null
+          lesson_reminders?: boolean | null
+          max_reminder_attempts?: number | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end_time?: string | null
+          quiet_hours_start_time?: string | null
+          reminder_days_before?: number | null
+          reminder_frequency_days?: number | null
+          reminder_time?: string | null
+          system_alerts?: boolean | null
+          task_due_dates?: boolean | null
+          track_completions?: boolean | null
+          upcoming_days_ahead?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          default_priority: string | null
+          description: string | null
+          html_body_template: string
+          id: string
+          is_active: boolean | null
+          is_system: boolean | null
+          last_used_at: string | null
+          layout_id: string | null
+          name: string
+          subject_template: string
+          text_body_template: string | null
+          type: string
+          updated_at: string | null
+          use_count: number | null
+          variables: Json | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_priority?: string | null
+          description?: string | null
+          html_body_template: string
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          last_used_at?: string | null
+          layout_id?: string | null
+          name: string
+          subject_template: string
+          text_body_template?: string | null
+          type: string
+          updated_at?: string | null
+          use_count?: number | null
+          variables?: Json | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_priority?: string | null
+          description?: string | null
+          html_body_template?: string
+          id?: string
+          is_active?: boolean | null
+          is_system?: boolean | null
+          last_used_at?: string | null
+          layout_id?: string | null
+          name?: string
+          subject_template?: string
+          text_body_template?: string | null
+          type?: string
+          updated_at?: string | null
+          use_count?: number | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_layout_id_fkey"
+            columns: ["layout_id"]
+            isOneToOne: false
+            referencedRelation: "email_layouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hardware_inventory: {
         Row: {
+          antivirus: string | null
           approval_authorized_by: string | null
           approval_created_date: string | null
           approval_status: string | null
@@ -558,19 +852,33 @@ export type Database = {
           asset_type: string
           created_at: string | null
           device_name: string
+          domain_workgroup: string | null
           end_of_support_date: string | null
+          external_id: string | null
           id: string
+          ip_address: string | null
+          last_logged_user: string | null
+          last_seen_at: string | null
+          last_synced_at: string | null
+          location_id: string | null
+          mac_addresses: string | null
           manufacturer: string | null
+          memory: string | null
           model: string | null
           os_edition: string | null
+          os_type: string | null
           os_version: string | null
           owner: string | null
+          processor: string | null
           responses: string | null
           serial_number: string
+          source: string | null
           status: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
+          antivirus?: string | null
           approval_authorized_by?: string | null
           approval_created_date?: string | null
           approval_status?: string | null
@@ -581,19 +889,33 @@ export type Database = {
           asset_type: string
           created_at?: string | null
           device_name: string
+          domain_workgroup?: string | null
           end_of_support_date?: string | null
+          external_id?: string | null
           id?: string
+          ip_address?: string | null
+          last_logged_user?: string | null
+          last_seen_at?: string | null
+          last_synced_at?: string | null
+          location_id?: string | null
+          mac_addresses?: string | null
           manufacturer?: string | null
+          memory?: string | null
           model?: string | null
           os_edition?: string | null
+          os_type?: string | null
           os_version?: string | null
           owner?: string | null
+          processor?: string | null
           responses?: string | null
           serial_number: string
+          source?: string | null
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
+          antivirus?: string | null
           approval_authorized_by?: string | null
           approval_created_date?: string | null
           approval_status?: string | null
@@ -604,19 +926,40 @@ export type Database = {
           asset_type?: string
           created_at?: string | null
           device_name?: string
+          domain_workgroup?: string | null
           end_of_support_date?: string | null
+          external_id?: string | null
           id?: string
+          ip_address?: string | null
+          last_logged_user?: string | null
+          last_seen_at?: string | null
+          last_synced_at?: string | null
+          location_id?: string | null
+          mac_addresses?: string | null
           manufacturer?: string | null
+          memory?: string | null
           model?: string | null
           os_edition?: string | null
+          os_type?: string | null
           os_version?: string | null
           owner?: string | null
+          processor?: string | null
           responses?: string | null
           serial_number?: string
+          source?: string | null
           status?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hardware_inventory_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hib_checklist: {
         Row: {
@@ -768,12 +1111,55 @@ export type Database = {
           },
         ]
       }
+      languages: {
+        Row: {
+          code: string
+          created_at: string | null
+          display_name: string | null
+          fallback_engine: string | null
+          flag_emoji: string | null
+          is_active: boolean | null
+          is_beta: boolean | null
+          name: string
+          native_name: string | null
+          preferred_engine: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          display_name?: string | null
+          fallback_engine?: string | null
+          flag_emoji?: string | null
+          is_active?: boolean | null
+          is_beta?: boolean | null
+          name: string
+          native_name?: string | null
+          preferred_engine?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          display_name?: string | null
+          fallback_engine?: string | null
+          flag_emoji?: string | null
+          is_active?: boolean | null
+          is_beta?: boolean | null
+          name?: string
+          native_name?: string | null
+          preferred_engine?: string | null
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       learning_track_assignments: {
         Row: {
           assigned_at: string | null
           assigned_by: string | null
           assignment_id: string
           completion_required: boolean | null
+          due_date: string | null
           learning_track_id: string
           notes: string | null
           reminder_sent: boolean | null
@@ -785,6 +1171,7 @@ export type Database = {
           assigned_by?: string | null
           assignment_id?: string
           completion_required?: boolean | null
+          due_date?: string | null
           learning_track_id: string
           notes?: string | null
           reminder_sent?: boolean | null
@@ -796,6 +1183,7 @@ export type Database = {
           assigned_by?: string | null
           assignment_id?: string
           completion_required?: boolean | null
+          due_date?: string | null
           learning_track_id?: string
           notes?: string | null
           reminder_sent?: boolean | null
@@ -864,6 +1252,7 @@ export type Database = {
           learning_track_id: string
           lesson_id: string
           order_index: number
+          owner: string | null
         }
         Insert: {
           created_at?: string
@@ -871,6 +1260,7 @@ export type Database = {
           learning_track_id: string
           lesson_id: string
           order_index: number
+          owner?: string | null
         }
         Update: {
           created_at?: string
@@ -878,6 +1268,7 @@ export type Database = {
           learning_track_id?: string
           lesson_id?: string
           order_index?: number
+          owner?: string | null
         }
         Relationships: [
           {
@@ -941,6 +1332,98 @@ export type Database = {
           },
         ]
       }
+      learning_track_translations: {
+        Row: {
+          character_count: number | null
+          created_at: string | null
+          description_translated: string | null
+          engine_used: string
+          id: string
+          is_outdated: boolean | null
+          language_code: string
+          learning_track_id: string
+          needs_review: boolean | null
+          owner: string | null
+          quality_score: number | null
+          reviewed_by: string | null
+          source_content_hash: string | null
+          status: string | null
+          title_translated: string
+          translated_by: string | null
+          translation_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          character_count?: number | null
+          created_at?: string | null
+          description_translated?: string | null
+          engine_used?: string
+          id?: string
+          is_outdated?: boolean | null
+          language_code: string
+          learning_track_id: string
+          needs_review?: boolean | null
+          owner?: string | null
+          quality_score?: number | null
+          reviewed_by?: string | null
+          source_content_hash?: string | null
+          status?: string | null
+          title_translated: string
+          translated_by?: string | null
+          translation_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          character_count?: number | null
+          created_at?: string | null
+          description_translated?: string | null
+          engine_used?: string
+          id?: string
+          is_outdated?: boolean | null
+          language_code?: string
+          learning_track_id?: string
+          needs_review?: boolean | null
+          owner?: string | null
+          quality_score?: number | null
+          reviewed_by?: string | null
+          source_content_hash?: string | null
+          status?: string | null
+          title_translated?: string
+          translated_by?: string | null
+          translation_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_track_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "learning_track_translations_learning_track_id_fkey"
+            columns: ["learning_track_id"]
+            isOneToOne: false
+            referencedRelation: "learning_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_track_translations_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_track_translations_translated_by_fkey"
+            columns: ["translated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_tracks: {
         Row: {
           allow_all_lessons_immediately: boolean | null
@@ -953,11 +1436,13 @@ export type Database = {
           id: string
           lessons_per_week: number | null
           max_lessons_per_week: number | null
+          owner: string | null
           schedule_days: number[] | null
           schedule_type: string
           start_date: string | null
           status: string
           title: string
+          track_type: string | null
           updated_at: string
         }
         Insert: {
@@ -971,11 +1456,13 @@ export type Database = {
           id?: string
           lessons_per_week?: number | null
           max_lessons_per_week?: number | null
+          owner?: string | null
           schedule_days?: number[] | null
           schedule_type?: string
           start_date?: string | null
           status?: string
           title: string
+          track_type?: string | null
           updated_at?: string
         }
         Update: {
@@ -989,14 +1476,90 @@ export type Database = {
           id?: string
           lessons_per_week?: number | null
           max_lessons_per_week?: number | null
+          owner?: string | null
           schedule_days?: number[] | null
           schedule_type?: string
           start_date?: string | null
           status?: string
           title?: string
+          track_type?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      lesson_answer_translations: {
+        Row: {
+          answer_id: string
+          character_count: number | null
+          content_hash: string | null
+          created_at: string | null
+          engine_used: string
+          explanation_translated: string | null
+          id: string
+          is_outdated: boolean | null
+          language_code: string
+          needs_review: boolean | null
+          owner: string | null
+          quality_score: number | null
+          reviewed_by: string | null
+          source_content_hash: string | null
+          status: string | null
+          text_translated: string
+          translated_by: string | null
+          translation_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          answer_id: string
+          character_count?: number | null
+          content_hash?: string | null
+          created_at?: string | null
+          engine_used?: string
+          explanation_translated?: string | null
+          id?: string
+          is_outdated?: boolean | null
+          language_code: string
+          needs_review?: boolean | null
+          owner?: string | null
+          quality_score?: number | null
+          reviewed_by?: string | null
+          source_content_hash?: string | null
+          status?: string | null
+          text_translated: string
+          translated_by?: string | null
+          translation_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          answer_id?: string
+          character_count?: number | null
+          content_hash?: string | null
+          created_at?: string | null
+          engine_used?: string
+          explanation_translated?: string | null
+          id?: string
+          is_outdated?: boolean | null
+          language_code?: string
+          needs_review?: boolean | null
+          owner?: string | null
+          quality_score?: number | null
+          reviewed_by?: string | null
+          source_content_hash?: string | null
+          status?: string | null
+          text_translated?: string
+          translated_by?: string | null
+          translation_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_answer_translations_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_answers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lesson_answers: {
         Row: {
@@ -1006,6 +1569,7 @@ export type Database = {
           is_correct: boolean | null
           next_node_id: string | null
           node_id: string
+          owner: string | null
           score: number | null
           text: string
         }
@@ -1016,6 +1580,7 @@ export type Database = {
           is_correct?: boolean | null
           next_node_id?: string | null
           node_id: string
+          owner?: string | null
           score?: number | null
           text: string
         }
@@ -1026,6 +1591,7 @@ export type Database = {
           is_correct?: boolean | null
           next_node_id?: string | null
           node_id?: string
+          owner?: string | null
           score?: number | null
           text?: string
         }
@@ -1039,10 +1605,92 @@ export type Database = {
           },
         ]
       }
+      lesson_node_translations: {
+        Row: {
+          character_count: number | null
+          content_hash: string | null
+          content_translated: string
+          created_at: string | null
+          engine_used: string
+          id: string
+          is_outdated: boolean | null
+          language_code: string | null
+          media_alt_translated: string | null
+          needs_review: boolean | null
+          node_id: string
+          owner: string | null
+          quality_score: number | null
+          reviewed_by: string | null
+          source_content_hash: string | null
+          status: string | null
+          translated_by: string | null
+          translation_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          character_count?: number | null
+          content_hash?: string | null
+          content_translated: string
+          created_at?: string | null
+          engine_used: string
+          id?: string
+          is_outdated?: boolean | null
+          language_code?: string | null
+          media_alt_translated?: string | null
+          needs_review?: boolean | null
+          node_id: string
+          owner?: string | null
+          quality_score?: number | null
+          reviewed_by?: string | null
+          source_content_hash?: string | null
+          status?: string | null
+          translated_by?: string | null
+          translation_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          character_count?: number | null
+          content_hash?: string | null
+          content_translated?: string
+          created_at?: string | null
+          engine_used?: string
+          id?: string
+          is_outdated?: boolean | null
+          language_code?: string | null
+          media_alt_translated?: string | null
+          needs_review?: boolean | null
+          node_id?: string
+          owner?: string | null
+          quality_score?: number | null
+          reviewed_by?: string | null
+          source_content_hash?: string | null
+          status?: string | null
+          translated_by?: string | null
+          translation_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_node_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "lesson_node_translations_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_nodes: {
         Row: {
           allow_multiple: boolean | null
           content: string
+          content_hash: string | null
           created_at: string
           embedded_lesson_id: string | null
           id: string
@@ -1053,6 +1701,7 @@ export type Database = {
           media_url: string | null
           min_selections: number | null
           next_node_id: string | null
+          owner: string | null
           position_x: number | null
           position_y: number | null
           type: string
@@ -1061,6 +1710,7 @@ export type Database = {
         Insert: {
           allow_multiple?: boolean | null
           content: string
+          content_hash?: string | null
           created_at?: string
           embedded_lesson_id?: string | null
           id: string
@@ -1071,6 +1721,7 @@ export type Database = {
           media_url?: string | null
           min_selections?: number | null
           next_node_id?: string | null
+          owner?: string | null
           position_x?: number | null
           position_y?: number | null
           type: string
@@ -1079,6 +1730,7 @@ export type Database = {
         Update: {
           allow_multiple?: boolean | null
           content?: string
+          content_hash?: string | null
           created_at?: string
           embedded_lesson_id?: string | null
           id?: string
@@ -1089,6 +1741,7 @@ export type Database = {
           media_url?: string | null
           min_selections?: number | null
           next_node_id?: string | null
+          owner?: string | null
           position_x?: number | null
           position_y?: number | null
           type?: string
@@ -1111,83 +1764,237 @@ export type Database = {
           },
         ]
       }
+      lesson_reminder_counts: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_reminder_sent_at: string | null
+          learning_track_id: string
+          lesson_id: string
+          reminder_count: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_reminder_sent_at?: string | null
+          learning_track_id: string
+          lesson_id: string
+          reminder_count?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_reminder_sent_at?: string | null
+          learning_track_id?: string
+          lesson_id?: string
+          reminder_count?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_reminder_counts_learning_track_id_fkey"
+            columns: ["learning_track_id"]
+            isOneToOne: false
+            referencedRelation: "learning_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_reminder_counts_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_reminder_history: {
+        Row: {
+          available_date: string
+          email_notification_id: string | null
+          id: string
+          learning_track_id: string | null
+          lesson_id: string
+          reminder_type: string
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          available_date: string
+          email_notification_id?: string | null
+          id?: string
+          learning_track_id?: string | null
+          lesson_id: string
+          reminder_type: string
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          available_date?: string
+          email_notification_id?: string | null
+          id?: string
+          learning_track_id?: string | null
+          lesson_id?: string
+          reminder_type?: string
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_reminder_history_email_notification_id_fkey"
+            columns: ["email_notification_id"]
+            isOneToOne: false
+            referencedRelation: "email_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_reminder_history_learning_track_id_fkey"
+            columns: ["learning_track_id"]
+            isOneToOne: false
+            referencedRelation: "learning_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_reminder_history_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_translations: {
+        Row: {
+          character_count: number | null
+          created_at: string | null
+          description_translated: string | null
+          engine_used: string
+          id: string
+          is_outdated: boolean | null
+          language_code: string | null
+          lesson_id: string
+          needs_review: boolean | null
+          owner: string | null
+          quality_score: number | null
+          reviewed_by: string | null
+          source_content_hash: string | null
+          status: string | null
+          title_translated: string
+          translated_by: string | null
+          translation_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          character_count?: number | null
+          created_at?: string | null
+          description_translated?: string | null
+          engine_used: string
+          id?: string
+          is_outdated?: boolean | null
+          language_code?: string | null
+          lesson_id: string
+          needs_review?: boolean | null
+          owner?: string | null
+          quality_score?: number | null
+          reviewed_by?: string | null
+          source_content_hash?: string | null
+          status?: string | null
+          title_translated: string
+          translated_by?: string | null
+          translation_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          character_count?: number | null
+          created_at?: string | null
+          description_translated?: string | null
+          engine_used?: string
+          id?: string
+          is_outdated?: boolean | null
+          language_code?: string | null
+          lesson_id?: string
+          needs_review?: boolean | null
+          owner?: string | null
+          quality_score?: number | null
+          reviewed_by?: string | null
+          source_content_hash?: string | null
+          status?: string | null
+          title_translated?: string
+          translated_by?: string | null
+          translation_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "lesson_translations_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
+          ai_generation_prompt: string | null
           created_at: string
           created_by: string | null
           description: string | null
           estimated_duration: number | null
           id: string
-          is_module: boolean | null
+          lesson_type: string | null
+          owner: string | null
+          quiz_config: Json | null
           start_node_id: string | null
           status: string
           title: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
+          ai_generation_prompt?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           estimated_duration?: number | null
           id?: string
-          is_module?: boolean | null
+          lesson_type?: string | null
+          owner?: string | null
+          quiz_config?: Json | null
           start_node_id?: string | null
           status?: string
           title: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
+          ai_generation_prompt?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           estimated_duration?: number | null
           id?: string
-          is_module?: boolean | null
+          lesson_type?: string | null
+          owner?: string | null
+          quiz_config?: Json | null
           start_node_id?: string | null
           status?: string
           title?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
-      }
-      licenses: {
-        Row: {
-          assigned_on: string
-          expires_on: string
-          id: string
-          product_id: string
-          user_id: string
-        }
-        Insert: {
-          assigned_on?: string
-          expires_on: string
-          id?: string
-          product_id: string
-          user_id: string
-        }
-        Update: {
-          assigned_on?: string
-          expires_on?: string
-          id?: string
-          product_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "licenses_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "licenses_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_roles"
-            referencedColumns: ["user_id"]
-          },
-        ]
       }
       locations: {
         Row: {
@@ -1225,20 +2032,182 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_history: {
+        Row: {
+          channel: string | null
+          created_at: string | null
+          email_template_id: string | null
+          error_message: string | null
+          id: string
+          priority: string | null
+          rule_id: string | null
+          sent_at: string | null
+          skip_reason: string | null
+          status: string | null
+          template_variables: Json | null
+          trigger_event: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string | null
+          email_template_id?: string | null
+          error_message?: string | null
+          id?: string
+          priority?: string | null
+          rule_id?: string | null
+          sent_at?: string | null
+          skip_reason?: string | null
+          status?: string | null
+          template_variables?: Json | null
+          trigger_event: string
+          user_id: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string | null
+          email_template_id?: string | null
+          error_message?: string | null
+          id?: string
+          priority?: string | null
+          rule_id?: string | null
+          sent_at?: string | null
+          skip_reason?: string | null
+          status?: string | null
+          template_variables?: Json | null
+          trigger_event?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_history_email_template_id_fkey"
+            columns: ["email_template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_history_email_template_id_fkey"
+            columns: ["email_template_id"]
+            isOneToOne: false
+            referencedRelation: "template_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_history_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "notification_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_rules: {
+        Row: {
+          cooldown_hours: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          email_template_id: string
+          id: string
+          is_enabled: boolean | null
+          last_triggered_at: string | null
+          max_sends_per_user_per_day: number | null
+          name: string
+          override_priority: string | null
+          respect_quiet_hours: boolean | null
+          schedule_delay_minutes: number | null
+          send_at_time: string | null
+          send_immediately: boolean | null
+          trigger_conditions: Json | null
+          trigger_count: number | null
+          trigger_event: string
+          updated_at: string | null
+        }
+        Insert: {
+          cooldown_hours?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          email_template_id: string
+          id?: string
+          is_enabled?: boolean | null
+          last_triggered_at?: string | null
+          max_sends_per_user_per_day?: number | null
+          name: string
+          override_priority?: string | null
+          respect_quiet_hours?: boolean | null
+          schedule_delay_minutes?: number | null
+          send_at_time?: string | null
+          send_immediately?: boolean | null
+          trigger_conditions?: Json | null
+          trigger_count?: number | null
+          trigger_event: string
+          updated_at?: string | null
+        }
+        Update: {
+          cooldown_hours?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          email_template_id?: string
+          id?: string
+          is_enabled?: boolean | null
+          last_triggered_at?: string | null
+          max_sends_per_user_per_day?: number | null
+          name?: string
+          override_priority?: string | null
+          respect_quiet_hours?: boolean | null
+          schedule_delay_minutes?: number | null
+          send_at_time?: string | null
+          send_immediately?: boolean | null
+          trigger_conditions?: Json | null
+          trigger_count?: number | null
+          trigger_event?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_rules_email_template_id_fkey"
+            columns: ["email_template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_rules_email_template_id_fkey"
+            columns: ["email_template_id"]
+            isOneToOne: false
+            referencedRelation: "template_performance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_profile: {
         Row: {
           acra_uen_number: string | null
           address: string | null
           annual_turnover: string | null
           appointed_certification_body: string | null
+          atera_api_key: string | null
+          atera_customer_id: number | null
+          azure_tenant_id: string | null
           charity_registration_number: string | null
           created_at: string
           created_by: string | null
+          device_last_synced_at: string | null
+          device_source: string | null
+          entra_enabled: boolean
           id: string
+          intune_client_id: string | null
+          intune_client_secret: string | null
+          intune_tenant_id: string | null
           number_of_employees: number | null
           number_of_executives: number | null
-          organisation_name: string | null
-          organisation_name_short: string | null
+          org_logo_url: string | null
+          org_name: string | null
+          org_short_name: string | null
+          require_mfa: boolean
           telephone: string | null
           updated_at: string
         }
@@ -1247,14 +2216,25 @@ export type Database = {
           address?: string | null
           annual_turnover?: string | null
           appointed_certification_body?: string | null
+          atera_api_key?: string | null
+          atera_customer_id?: number | null
+          azure_tenant_id?: string | null
           charity_registration_number?: string | null
           created_at?: string
           created_by?: string | null
+          device_last_synced_at?: string | null
+          device_source?: string | null
+          entra_enabled?: boolean
           id?: string
+          intune_client_id?: string | null
+          intune_client_secret?: string | null
+          intune_tenant_id?: string | null
           number_of_employees?: number | null
           number_of_executives?: number | null
-          organisation_name?: string | null
-          organisation_name_short?: string | null
+          org_logo_url?: string | null
+          org_name?: string | null
+          org_short_name?: string | null
+          require_mfa?: boolean
           telephone?: string | null
           updated_at?: string
         }
@@ -1263,14 +2243,25 @@ export type Database = {
           address?: string | null
           annual_turnover?: string | null
           appointed_certification_body?: string | null
+          atera_api_key?: string | null
+          atera_customer_id?: number | null
+          azure_tenant_id?: string | null
           charity_registration_number?: string | null
           created_at?: string
           created_by?: string | null
+          device_last_synced_at?: string | null
+          device_source?: string | null
+          entra_enabled?: boolean
           id?: string
+          intune_client_id?: string | null
+          intune_client_secret?: string | null
+          intune_tenant_id?: string | null
           number_of_employees?: number | null
           number_of_executives?: number | null
-          organisation_name?: string | null
-          organisation_name_short?: string | null
+          org_logo_url?: string | null
+          org_name?: string | null
+          org_short_name?: string | null
+          require_mfa?: boolean
           telephone?: string | null
           updated_at?: string
         }
@@ -1316,7 +2307,7 @@ export type Database = {
           approval_status:
             | Database["public"]["Enums"]["approval_status_enum"]
             | null
-          approved_at: string
+          approved_at: string | null
           approved_by: string | null
           due_date: string | null
           id: string
@@ -1330,7 +2321,7 @@ export type Database = {
           approval_status?:
             | Database["public"]["Enums"]["approval_status_enum"]
             | null
-          approved_at?: string
+          approved_at?: string | null
           approved_by?: string | null
           due_date?: string | null
           id?: string
@@ -1344,7 +2335,7 @@ export type Database = {
           approval_status?:
             | Database["public"]["Enums"]["approval_status_enum"]
             | null
-          approved_at?: string
+          approved_at?: string | null
           approved_by?: string | null
           due_date?: string | null
           id?: string
@@ -1383,7 +2374,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          access_purpose: string
+          access_purpose?: string
           created_at?: string
           date_access_created: string
           date_access_revoked?: string | null
@@ -1423,41 +2414,89 @@ export type Database = {
           },
         ]
       }
+      product_license_assignments: {
+        Row: {
+          access_level: Database["public"]["Enums"]["access_level_type"]
+          id: string
+          license_id: string
+          user_id: string
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["access_level_type"]
+          id?: string
+          license_id: string
+          user_id: string
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["access_level_type"]
+          id?: string
+          license_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_product_licenses_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "customer_product_licenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_product_licenses_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "license_usage"
+            referencedColumns: ["license_id"]
+          },
+          {
+            foreignKeyName: "user_product_licenses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           id: string
           name: string
-          version: number
+          version: number | null
         }
         Insert: {
           id?: string
           name: string
-          version: number
+          version?: number | null
         }
         Update: {
           id?: string
           name?: string
-          version?: number
+          version?: number | null
         }
         Relationships: []
       }
       profiles: {
         Row: {
-          access_level: string | null
+          activated_at: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
           cyber_learner: boolean | null
           dpe_complete: boolean | null
           dpe_learner: boolean | null
+          email: string | null
           employee_id: string | null
           enrolled_in_learn: boolean | null
+          entra_oid: string | null
+          first_name: string | null
           full_name: string | null
           id: string
           language: string | null
           last_login: string | null
+          last_name: string | null
           learn_complete: boolean | null
           location: string | null
+          location_id: string | null
           manager: string | null
           password_last_changed: string | null
           phone: string | null
@@ -1465,24 +2504,28 @@ export type Database = {
           status: string | null
           two_factor_enabled: boolean | null
           updated_at: string
-          email: string | null
         }
         Insert: {
-          access_level?: string | null
+          activated_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           cyber_learner?: boolean | null
           dpe_complete?: boolean | null
           dpe_learner?: boolean | null
+          email?: string | null
           employee_id?: string | null
           enrolled_in_learn?: boolean | null
+          entra_oid?: string | null
+          first_name?: string | null
           full_name?: string | null
           id: string
           language?: string | null
           last_login?: string | null
+          last_name?: string | null
           learn_complete?: boolean | null
           location?: string | null
+          location_id?: string | null
           manager?: string | null
           password_last_changed?: string | null
           phone?: string | null
@@ -1490,24 +2533,28 @@ export type Database = {
           status?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string
-          email?: string | null
         }
         Update: {
-          access_level?: string | null
+          activated_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           cyber_learner?: boolean | null
           dpe_complete?: boolean | null
           dpe_learner?: boolean | null
+          email?: string | null
           employee_id?: string | null
           enrolled_in_learn?: boolean | null
+          entra_oid?: string | null
+          first_name?: string | null
           full_name?: string | null
           id?: string
           language?: string | null
           last_login?: string | null
+          last_name?: string | null
           learn_complete?: boolean | null
           location?: string | null
+          location_id?: string | null
           manager?: string | null
           password_last_changed?: string | null
           phone?: string | null
@@ -1515,15 +2562,78 @@ export type Database = {
           status?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string
-          email?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_language_fkey"
+            columns: ["language"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["display_name"]
+          },
+          {
+            foreignKeyName: "profiles_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_manager_fkey"
             columns: ["manager"]
             isOneToOne: false
             referencedRelation: "user_roles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      quiz_attempts: {
+        Row: {
+          answers_data: Json | null
+          attempt_number: number
+          completed_at: string | null
+          correct_answers: number
+          created_at: string | null
+          id: string
+          lesson_id: string
+          passed: boolean
+          percentage_score: number
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          answers_data?: Json | null
+          attempt_number?: number
+          completed_at?: string | null
+          correct_answers: number
+          created_at?: string | null
+          id?: string
+          lesson_id: string
+          passed: boolean
+          percentage_score: number
+          total_questions: number
+          user_id: string
+        }
+        Update: {
+          answers_data?: Json | null
+          attempt_number?: number
+          completed_at?: string | null
+          correct_answers?: number
+          created_at?: string | null
+          id?: string
+          lesson_id?: string
+          passed?: boolean
+          percentage_score?: number
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1616,6 +2726,226 @@ export type Database = {
         }
         Relationships: []
       }
+      template_variable_translations: {
+        Row: {
+          created_at: string
+          default_value: string | null
+          display_name: string
+          id: string
+          language_code: string
+          updated_at: string
+          variable_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_value?: string | null
+          display_name: string
+          id?: string
+          language_code?: string
+          updated_at?: string
+          variable_id: string
+        }
+        Update: {
+          created_at?: string
+          default_value?: string | null
+          display_name?: string
+          id?: string
+          language_code?: string
+          updated_at?: string
+          variable_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_variable_translations_variable_id_fkey"
+            columns: ["variable_id"]
+            isOneToOne: false
+            referencedRelation: "template_variables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_variables: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          display_name: string
+          id: string
+          is_active: boolean
+          is_system: boolean
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      translation_change_log: {
+        Row: {
+          affected_translations: number | null
+          change_magnitude: string | null
+          change_type: string
+          character_difference: number | null
+          estimated_retranslation_cost: number | null
+          field_name: string
+          id: string
+          lesson_id: string | null
+          new_hash: string | null
+          new_value: string | null
+          old_hash: string | null
+          old_value: string | null
+          record_id: string
+          table_name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          affected_translations?: number | null
+          change_magnitude?: string | null
+          change_type: string
+          character_difference?: number | null
+          estimated_retranslation_cost?: number | null
+          field_name: string
+          id?: string
+          lesson_id?: string | null
+          new_hash?: string | null
+          new_value?: string | null
+          old_hash?: string | null
+          old_value?: string | null
+          record_id: string
+          table_name: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          affected_translations?: number | null
+          change_magnitude?: string | null
+          change_type?: string
+          character_difference?: number | null
+          estimated_retranslation_cost?: number | null
+          field_name?: string
+          id?: string
+          lesson_id?: string | null
+          new_hash?: string | null
+          new_value?: string | null
+          old_hash?: string | null
+          old_value?: string | null
+          record_id?: string
+          table_name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translation_change_log_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      translation_jobs: {
+        Row: {
+          actual_duration: number | null
+          completed_at: string | null
+          completed_items: number | null
+          created_at: string | null
+          error_message: string | null
+          estimated_duration: number | null
+          failed_items: number | null
+          id: string
+          lesson_id: string
+          max_retries: number | null
+          priority: number | null
+          requested_by: string | null
+          retry_count: number | null
+          status: string | null
+          target_language: string | null
+          total_characters: number | null
+          total_cost: number | null
+          total_items: number
+          updated_at: string | null
+        }
+        Insert: {
+          actual_duration?: number | null
+          completed_at?: string | null
+          completed_items?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          estimated_duration?: number | null
+          failed_items?: number | null
+          id?: string
+          lesson_id: string
+          max_retries?: number | null
+          priority?: number | null
+          requested_by?: string | null
+          retry_count?: number | null
+          status?: string | null
+          target_language?: string | null
+          total_characters?: number | null
+          total_cost?: number | null
+          total_items: number
+          updated_at?: string | null
+        }
+        Update: {
+          actual_duration?: number | null
+          completed_at?: string | null
+          completed_items?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          estimated_duration?: number | null
+          failed_items?: number | null
+          id?: string
+          lesson_id?: string
+          max_retries?: number | null
+          priority?: number | null
+          requested_by?: string | null
+          retry_count?: number | null
+          status?: string | null
+          target_language?: string | null
+          total_characters?: number | null
+          total_cost?: number | null
+          total_items?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translation_jobs_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "translation_jobs_target_language_fkey"
+            columns: ["target_language"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       user_answer_responses: {
         Row: {
           answer_ids: string[]
@@ -1706,6 +3036,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_deletion_audit: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          deleted_at: string
+          deleted_by: string
+          deleted_user_email: string
+          deleted_user_id: string
+          deleted_user_name: string
+          deletion_reason: string | null
+          id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          deleted_at?: string
+          deleted_by: string
+          deleted_user_email: string
+          deleted_user_id: string
+          deleted_user_name: string
+          deletion_reason?: string | null
+          id?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          deleted_at?: string
+          deleted_by?: string
+          deleted_user_email?: string
+          deleted_user_id?: string
+          deleted_user_name?: string
+          deletion_reason?: string | null
+          id?: string
+        }
+        Relationships: []
       }
       user_departments: {
         Row: {
@@ -1832,6 +3201,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_lesson_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1976,8 +3352,114 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_notification_summary: {
+        Row: {
+          count: number | null
+          notification_date: string | null
+          status: string | null
+          trigger_event: string | null
+          unique_users: number | null
+        }
+        Relationships: []
+      }
+      learning_template_variables: {
+        Row: {
+          category: string | null
+          default_value: string | null
+          display_name: string | null
+          is_active: boolean | null
+          is_system: boolean | null
+          key: string | null
+        }
+        Relationships: []
+      }
+      license_usage: {
+        Row: {
+          available_seats: number | null
+          end_date: string | null
+          license_id: string | null
+          product_id: string | null
+          start_date: string | null
+          total_seats: number | null
+          used_seats: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_product_licenses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_performance: {
+        Row: {
+          failed_sends: number | null
+          id: string | null
+          last_used_at: string | null
+          name: string | null
+          skipped_sends: number | null
+          success_rate: number | null
+          successful_sends: number | null
+          total_sends: number | null
+          type: string | null
+          use_count: number | null
+        }
+        Relationships: []
+      }
+      template_variables_by_category: {
+        Row: {
+          category: string | null
+          variable_count: number | null
+          variable_keys: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      assess_change_magnitude: {
+        Args: { new_value: string; old_value: string }
+        Returns: string
+      }
+      can_manage_documents: { Args: never; Returns: boolean }
+      can_manage_user: { Args: { _user_id: string }; Returns: boolean }
+      check_outdated_status: {
+        Args: never
+        Returns: {
+          needs_fixing: boolean
+          outdated_completed: number
+          table_name: string
+          total_completed: number
+        }[]
+      }
+      debug_outdated_status: {
+        Args: never
+        Returns: {
+          is_outdated: boolean
+          language_code: string
+          last_modified: string
+          lesson_id: string
+          lesson_title: string
+          translation_updated: string
+        }[]
+      }
+      debug_translation_data: {
+        Args: never
+        Returns: {
+          created_at: string
+          language_code: string
+          lesson_id: string
+          lesson_title: string
+          status: string
+          translation_cost: number
+        }[]
+      }
+      fix_existing_outdated_flags: { Args: never; Returns: undefined }
+      generate_content_hash: {
+        Args: { content: string; media_alt: string }
+        Returns: string
+      }
       generate_document_assignments: {
         Args: { doc_id: string }
         Returns: undefined
@@ -1986,52 +3468,231 @@ export type Database = {
         Args: { track_id: string }
         Returns: undefined
       }
+      get_active_rules_for_event: {
+        Args: { p_event_type: string }
+        Returns: {
+          default_priority: string
+          email_template_id: string
+          html_body_template: string
+          rule_id: string
+          rule_name: string
+          send_at_time: string
+          send_immediately: boolean
+          subject_template: string
+          template_type: string
+          template_variables: Json
+          trigger_conditions: Json
+        }[]
+      }
+      get_active_translation_jobs: {
+        Args: never
+        Returns: {
+          completed_items: number
+          created_at: string
+          estimated_seconds_remaining: number
+          failed_items: number
+          id: string
+          lesson_title: string
+          progress_percentage: number
+          status: string
+          target_language: string
+          total_cost: number
+          total_items: number
+          updated_at: string
+        }[]
+      }
+      get_current_user_managed_departments: {
+        Args: never
+        Returns: {
+          department_id: string
+        }[]
+      }
       get_current_user_role: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_key_dates: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
-          id: string
-          key_activity: string
-          due_date: string
-          updated_due_date: string
-          frequency: string
           certificate: string
           created_at: string
-          modified_at: string
           created_by: string
+          due_date: string
+          frequency: string
+          id: string
+          key_activity: string
+          modified_at: string
           modified_by: string
+          updated_due_date: string
+        }[]
+      }
+      get_lessons_with_outdated_content: {
+        Args: never
+        Returns: {
+          created_by: string
+          last_modified: string
+          lesson_id: string
+          lesson_title: string
+          outdated_languages: Json
+        }[]
+      }
+      get_lessons_with_outdated_content_public: {
+        Args: never
+        Returns: {
+          created_by: string
+          last_modified: string
+          lesson_id: string
+          lesson_title: string
+          outdated_languages: Json
+        }[]
+      }
+      get_monthly_translation_spend: {
+        Args: never
+        Returns: {
+          spend_by_language: Json
+          total_monthly_spend: number
+        }[]
+      }
+      get_nodes_needing_translation: {
+        Args: { language_code: string; lesson_id: string }
+        Returns: {
+          content: string
+          content_hash: string
+          last_translation_hash: string
+          media_alt: string
+          needs_translation: boolean
+          node_id: string
+        }[]
+      }
+      get_org_require_mfa: { Args: never; Returns: boolean }
+      get_org_sso_config: {
+        Args: never
+        Returns: {
+          azure_tenant_id: string
+          entra_enabled: boolean
+        }[]
+      }
+      get_outdated_lessons: {
+        Args: never
+        Returns: {
+          created_by: string
+          id: string
+          last_modified: string
+          node_count: number
+          outdated_count: number
+          outdated_node_count: number
+          title: string
+          translation_count: number
+        }[]
+      }
+      get_outdated_lessons_grouped: {
+        Args: never
+        Returns: {
+          created_by: string
+          last_modified: string
+          lesson_id: string
+          lesson_title: string
+          outdated_languages: Json
+        }[]
+      }
+      get_recent_translation_activity: {
+        Args: never
+        Returns: {
+          activity_time: string
+          activity_type: string
+          cost: number
+          language_code: string
+          lesson_title: string
+          user_email: string
+        }[]
+      }
+      get_translation_dashboard_stats: {
+        Args: never
+        Returns: {
+          lessons_needing_updates: number
+          total_lessons: number
+          translated_lessons: number
         }[]
       }
       get_user_assigned_tracks: {
         Args: { user_id: string }
         Returns: {
-          track_id: string
           assignment_id: string
-          status: string
           completion_required: boolean
+          status: string
+          track_id: string
         }[]
       }
-      get_user_email_by_id: {
-        Args: { user_id: string }
-        Returns: string
-      }
+      get_user_email_by_id: { Args: { user_id: string }; Returns: string }
       get_user_id_by_email: {
         Args: { email: string }
         Returns: {
           id: string
         }[]
       }
+      get_user_last_sign_in: {
+        Args: { target_user_id: string }
+        Returns: string
+      }
+      get_users_needing_lesson_reminders: {
+        Args: never
+        Returns: {
+          available_date: string
+          learning_track_id: string
+          learning_track_title: string
+          lesson_description: string
+          lesson_id: string
+          lesson_title: string
+          order_index: number
+          reminder_type: string
+          user_email: string
+          user_id: string
+        }[]
+      }
       has_role: {
-        Args:
-          | { _user_id: string; _role: Database["public"]["Enums"]["app_role"] }
-          | { user_id: string; required_role: string }
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: boolean
       }
+      is_direct_manager_of: { Args: { _user_id: string }; Returns: boolean }
+      is_manager: { Args: never; Returns: boolean }
+      is_user_in_managed_department: {
+        Args: { _manager_id: string; _user_id: string }
+        Returns: boolean
+      }
+      mark_lesson_translations_outdated_manual: {
+        Args: { lesson_uuid: string }
+        Returns: undefined
+      }
+      refresh_outdated_status: { Args: never; Returns: undefined }
+      send_email_notification: {
+        Args: {
+          p_email: string
+          p_message: string
+          p_scheduled_for?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      should_send_notification: {
+        Args: {
+          p_notification_type: string
+          p_rule_id: string
+          p_user_id: string
+        }
+        Returns: {
+          should_send: boolean
+          skip_reason: string
+        }[]
+      }
+      trigger_lesson_reminders: { Args: never; Returns: Json }
     }
     Enums: {
+      access_level_type: "admin" | "manager" | "user" | "super_admin" | "author"
       activity_type:
         | "Risk assessment"
         | "Incident response"
@@ -2041,7 +3702,13 @@ export type Database = {
         | "Security monitoring"
         | "Compliance audit"
         | "Training and awareness"
-      app_role: "admin" | "moderator" | "user"
+      app_role:
+        | "admin"
+        | "user"
+        | "super_admin"
+        | "client_admin"
+        | "manager"
+        | "author"
       approval_status_enum:
         | "Not Submitted"
         | "Submitted"
@@ -2174,6 +3841,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_level_type: ["admin", "manager", "user", "super_admin", "author"],
       activity_type: [
         "Risk assessment",
         "Incident response",
@@ -2184,7 +3852,14 @@ export const Constants = {
         "Compliance audit",
         "Training and awareness",
       ],
-      app_role: ["admin", "moderator", "user"],
+      app_role: [
+        "admin",
+        "user",
+        "super_admin",
+        "client_admin",
+        "manager",
+        "author",
+      ],
       approval_status_enum: [
         "Not Submitted",
         "Submitted",

@@ -10,15 +10,17 @@
 
 ## Impacted Modules
 
-| Module | Impact |
-|--------|--------|
-| `govern/` | New edge function; DB migration on `hardware_inventory`; `config.toml` update; `types.ts` regeneration; optional UI enhancements to hardware inventory views |
-| `organisation/` | DB migration on `org_profile`; new device integration settings panel; `org_profile` types regeneration |
-| `deploy/` | `onboard-client.sh` — add `supabase secrets set GOVERN_API_KEY` step |
-| `learn/` | No changes |
-| `auth/` | No changes |
-| `notifications/` | No changes |
-| `license/` | No changes |
+
+| Module           | Impact                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `govern/`        | New edge function; DB migration on `hardware_inventory`; `config.toml` update; `types.ts` regeneration; optional UI enhancements to hardware inventory views |
+| `organisation/`  | DB migration on `org_profile`; new device integration settings panel; `org_profile` types regeneration                                                       |
+| `deploy/`        | `onboard-client.sh` — add `supabase secrets set GOVERN_API_KEY` step                                                                                         |
+| `learn/`         | No changes                                                                                                                                                   |
+| `auth/`          | No changes                                                                                                                                                   |
+| `notifications/` | No changes                                                                                                                                                   |
+| `license/`       | No changes                                                                                                                                                   |
+
 
 ---
 
@@ -79,22 +81,25 @@ govern/supabase/functions/device-ingest/
 
 ### Routes
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| POST | `/v1/sync` | `DEVICE_SYNC_KEY` | Trigger ingestion (internal/scheduled) |
-| GET | `/v1/devices` | `GOVERN_API_KEY` | Paginated device list (3rd party) |
-| GET | `/v1/devices/:id` | `GOVERN_API_KEY` | Single device (3rd party) |
+
+| Method | Path              | Auth              | Purpose                                |
+| ------ | ----------------- | ----------------- | -------------------------------------- |
+| POST   | `/v1/sync`        | `SUPABASE_SERVICE_ROLE_KEY` (`SB_SECRET`) | Trigger ingestion (internal/scheduled) |
+| GET    | `/v1/devices`     | `GOVERN_API_KEY`  | Paginated device list (3rd party)      |
+| GET    | `/v1/devices/:id` | `GOVERN_API_KEY`  | Single device (3rd party)              |
+
 
 ### Secrets
 
-| Secret | Storage | Scope | Purpose |
-|--------|---------|-------|---------|
-| `DEVICE_SYNC_KEY` | Supabase secret | Per-project | Admin key for POST /v1/sync (internal use only) |
-| `GOVERN_API_KEY` | Supabase secret | Same value across all projects | Read key issued to 3rd party developer — same pattern as `LEARN_API_KEY` |
-| `intune_client_secret` | Supabase Vault | Per-client | Intune app registration secret |
-| `atera_api_key` | Supabase Vault | Per-client (1 client currently) | Atera API key |
-| `SUPABASE_URL` | Auto-provided | — | Supabase runtime |
-| `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided | — | Supabase runtime |
+
+| Secret                      | Storage         | Scope                           | Purpose                                                                        |
+| --------------------------- | --------------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| `GOVERN_API_KEY`            | Supabase secret | Same value across all projects  | Read key issued to 3rd party developer — same pattern as `LEARN_API_KEY`       |
+| `intune_client_secret`      | Supabase Vault  | Per-client                      | Intune app registration secret                                                 |
+| `atera_api_key`             | Supabase Vault  | Per-client (1 client currently) | Atera API key                                                                  |
+| `SUPABASE_URL`              | Auto-provided   | —                               | Supabase runtime                                                                |
+| `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided   | —                               | Supabase runtime; also guards `POST /v1/sync` — no additional secret needed   |
+
 
 `GOVERN_API_KEY` follows the same pattern as `LEARN_API_KEY` — a Supabase secret set via `supabase secrets set` and read server-side via `Deno.env.get('GOVERN_API_KEY')`. `LEARN_API_KEY` is per-customer; `GOVERN_API_KEY` uses the same value across all client projects but is provisioned the same way during onboarding.
 
@@ -177,10 +182,12 @@ Atera provides `LastLoggedUser` which is a Windows login name (e.g. `jsmith`) �
 
 ### Summary
 
-| Source | Field used | Match target | Auto-match |
-|--------|-----------|--------------|------------|
-| Intune | `userPrincipalName` | `profiles.email` | Yes — reliable |
-| Atera | `LastLoggedUser` | — | No — Windows username, not matchable |
+
+| Source | Field used          | Match target     | Auto-match                           |
+| ------ | ------------------- | ---------------- | ------------------------------------ |
+| Intune | `userPrincipalName` | `profiles.email` | Yes — reliable                       |
+| Atera  | `LastLoggedUser`    | —                | No — Windows username, not matchable |
+
 
 Unmatched devices (`user_id = null`) are visible in the hardware inventory and can be manually assigned by an admin.
 
@@ -229,7 +236,8 @@ The `device-ingest` edge function serves two purposes within the same deployment
 └─────────────────────────────────────────────────────┘
 ```
 
-- `DEVICE_SYNC_KEY` and `GOVERN_API_KEY` are separate secrets — the developer key cannot trigger a sync or write any data
+- `SUPABASE_SERVICE_ROLE_KEY` / `SB_SECRET` guards `POST /v1/sync` — no additional secret needed
+- `GOVERN_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are separate secrets — the developer key cannot trigger a sync or write any data
 - Sync schedule is controlled entirely by us (Supabase cron, nightly)
 - All Intune/Atera credentials stay server-side; the developer never sees them
 - Endpoint is versioned (`/v1/`) to allow non-breaking evolution
@@ -245,40 +253,66 @@ The `device-ingest` edge function serves two purposes within the same deployment
 ```sql
 ALTER TABLE org_profile
   ADD COLUMN IF NOT EXISTS device_source         text,    -- 'intune' | 'atera' | null (not configured)
-  ADD COLUMN IF NOT EXISTS intune_tenant_id      text,
   ADD COLUMN IF NOT EXISTS intune_client_id      text,
   ADD COLUMN IF NOT EXISTS intune_client_secret  text,    -- Vault secret name, not the raw value
   ADD COLUMN IF NOT EXISTS atera_api_key         text,    -- Vault secret name, not the raw value
   ADD COLUMN IF NOT EXISTS atera_customer_id     integer, -- Atera customer ID used to scope agent queries
   ADD COLUMN IF NOT EXISTS device_last_synced_at timestamptz;
+-- intune_tenant_id NOT added — azure_tenant_id (already present for Entra SSO) is reused
+-- Migration 20260424000002 drops intune_tenant_id if it was added in error
 ```
 
-The edge function reads credentials at runtime:
+The edge function reads `azure_tenant_id` (shared with Entra SSO) for Intune calls and resolves credentials from Supabase Vault at runtime:
 
 ```typescript
 const { data: org } = await supabase
   .from('org_profile')
-  .select('device_source, intune_tenant_id, intune_client_id, intune_client_secret, atera_api_key')
+  .select('device_source, azure_tenant_id, intune_client_id, intune_client_secret, atera_api_key')
   .single()
 
 const secretName = org.device_source === 'intune'
   ? org.intune_client_secret
   : org.atera_api_key
 
-const { data: secret } = await supabase.rpc('vault.decrypted_secret', {
-  secret_name: secretName
-})
+// vault schema is not PostgREST-accessible — use the public.get_vault_secret() RPC helper
+const { data: secret } = await supabase.rpc('get_vault_secret', { secret_name: secretName })
 ```
+
+### Provisioning Vault secrets
+
+Before the admin UI exists, provision secrets via the Supabase SQL editor:
+
+```sql
+-- Store the actual secret value in Vault and record its name in org_profile.
+
+-- Atera
+SELECT vault.create_secret('YOUR_ATERA_API_KEY_HERE', 'atera-api-key-client-x');
+UPDATE org_profile SET
+  device_source      = 'atera',
+  atera_api_key      = 'atera-api-key-client-x',   -- Vault secret name
+  atera_customer_id  = 12345;                        -- Atera customer ID
+
+-- Intune (reuses azure_tenant_id already stored for SSO)
+SELECT vault.create_secret('YOUR_INTUNE_CLIENT_SECRET_HERE', 'intune-client-secret-client-x');
+UPDATE org_profile SET
+  device_source         = 'intune',
+  intune_client_id      = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+  intune_client_secret  = 'intune-client-secret-client-x';   -- Vault secret name
+```
+
+The edge function reads `org_profile.atera_api_key` / `org_profile.intune_client_secret` as the Vault secret *name*, then queries `vault.decrypted_secrets` to retrieve the actual value. The raw secret value never leaves the database layer.
 
 ### Organisation module admin UI
 
 Extend the existing SSO settings panel to add:
 
 - Radio/select: **Device management source** — Intune or Atera (one only per client)
-- If Intune selected: Tenant ID, Client ID, Client Secret (write-only)
+- If Intune selected: Client ID, Client Secret (write-only) — Tenant ID is reused from SSO (`azure_tenant_id`)
 - If Atera selected: API Key (write-only), Customer ID (integer input)
 - **Test connection** button — calls `POST /v1/sync?dry_run=true` to validate credentials without writing data
 - Last synced timestamp (read-only, from `device_last_synced_at`)
+
+The UI writes the raw secret to Vault via `vault.create_secret()` and stores the returned name in `org_profile`.
 
 ---
 
@@ -295,26 +329,31 @@ verify_jwt = false
 
 ## Implementation Checklist
 
-**Database**
-- [ ] `govern/supabase/migrations/add_device_ingest_columns.sql` — add new columns to `hardware_inventory`
-- [ ] `govern/supabase/migrations/add_integration_columns_to_org_profile.sql` — add device_source + Vault credential columns to `org_profile`
+**Database** (migrations live in `learn/supabase/migrations/` — both `learn` and `govern` share the same Supabase project)
+
+- `learn/supabase/migrations/20260424000000_add_device_ingest_columns.sql` — add new columns to `hardware_inventory`
+- `learn/supabase/migrations/20260424000001_add_integration_columns_to_org_profile.sql` — add device_source + Vault credential columns to `org_profile`
+- `learn/supabase/migrations/20260424000002_drop_intune_tenant_id_from_org_profile.sql` — drop redundant `intune_tenant_id` (reuse `azure_tenant_id`)
 
 **Edge function**
-- [ ] `govern/supabase/functions/device-ingest/intune.ts` — Intune Graph client
-- [ ] `govern/supabase/functions/device-ingest/atera.ts` — Atera REST client
-- [ ] `govern/supabase/functions/device-ingest/normalise.ts` — field normaliser
-- [ ] `govern/supabase/functions/device-ingest/index.ts` — main handler
-- [ ] `govern/supabase/functions/device-ingest/index.test.ts` — Deno unit tests
-- [ ] `govern/supabase/functions/device-ingest/deno.json` — Deno config
-- [ ] `govern/supabase/config.toml` — add `[functions.device-ingest]` entry
+
+- `learn/supabase/functions/device-ingest/intune.ts` — Intune Graph client
+- `learn/supabase/functions/device-ingest/atera.ts` — Atera REST client
+- `learn/supabase/functions/device-ingest/normalise.ts` — field normaliser
+- `learn/supabase/functions/device-ingest/index.ts` — main handler
+- `learn/supabase/functions/device-ingest/index.test.ts` — Deno unit tests
+- `learn/supabase/functions/device-ingest/deno.json` — Deno config
+- `learn/supabase/config.toml` — `[functions.device-ingest]` entry
 
 **Organisation module / Govern admin UI**
-- [ ] Device source selector + credential fields in SSO settings panel
-- [ ] Test connection button (dry-run sync)
+
+- Device source selector + credential fields in SSO settings panel
+- Test connection button (dry-run sync)
 
 **Docs & provisioning**
-- [ ] `govern/docs/DEVICE_INGEST_API_REFERENCE.md` — API reference for 3rd party developer
-- [ ] Provision `GOVERN_API_KEY` as a Supabase secret during client onboarding (added to `deploy/scripts/onboard-client.sh`)
+
+- `govern/docs/DEVICE_INGEST_API_REFERENCE.md` — API reference for 3rd party developer
+- Provision `GOVERN_API_KEY` as a Supabase secret during client onboarding (added to `deploy/scripts/onboard-client.sh`)
 
 ---
 
@@ -323,23 +362,27 @@ verify_jwt = false
 ### What you receive
 
 1. **Base URL** — `https://<project-ref>.supabase.co/functions/v1/device-ingest`
-2. **`GOVERN_API_KEY`** — a Bearer token to include on every request
+2. `**GOVERN_API_KEY`** — a Bearer token to include on every request
 3. **API reference doc** (`govern/docs/DEVICE_INGEST_API_REFERENCE.md`)
 
 ### Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/v1/devices` | Paginated list of all devices |
-| GET | `/v1/devices/:id` | Single device by ID |
+
+| Method | Path              | Description                   |
+| ------ | ----------------- | ----------------------------- |
+| GET    | `/v1/devices`     | Paginated list of all devices |
+| GET    | `/v1/devices/:id` | Single device by ID           |
+
 
 Query parameters for `/v1/devices`:
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | integer | 1 | Page number |
-| `page_size` | integer | 100 (max 200) | Results per page |
-| `updated_since` | ISO 8601 | — | Filter to records updated after this timestamp |
+
+| Parameter       | Type     | Default       | Description                                    |
+| --------------- | -------- | ------------- | ---------------------------------------------- |
+| `page`          | integer  | 1             | Page number                                    |
+| `page_size`     | integer  | 100 (max 200) | Results per page                               |
+| `updated_since` | ISO 8601 | —             | Filter to records updated after this timestamp |
+
 
 ### Code examples
 
@@ -418,19 +461,24 @@ $body = json_decode(curl_exec($ch), true);
 
 ### Error responses
 
-| Status | Meaning |
-|--------|---------|
-| 401 | Missing or invalid `GOVERN_API_KEY` |
-| 400 | Invalid request (e.g. bad UUID format) |
-| 404 | Device not found |
-| 500 | Internal server error |
+
+| Status | Meaning                                |
+| ------ | -------------------------------------- |
+| 401    | Missing or invalid `GOVERN_API_KEY`    |
+| 400    | Invalid request (e.g. bad UUID format) |
+| 404    | Device not found                       |
+| 500    | Internal server error                  |
+
 
 ### What you can and cannot do
 
-| | |
-|---|---|
-| Read device list (paginated) | Yes |
-| Read single device by ID | Yes |
-| Filter by `updated_since` | Yes |
-| Trigger a sync | No |
-| Write or update device records | No |
+
+|                                |     |
+| ------------------------------ | --- |
+| Read device list (paginated)   | Yes |
+| Read single device by ID       | Yes |
+| Filter by `updated_since`      | Yes |
+| Trigger a sync                 | No  |
+| Write or update device records | No  |
+
+
