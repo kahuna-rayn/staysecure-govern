@@ -331,29 +331,50 @@ verify_jwt = false
 
 **Database** (migrations live in `learn/supabase/migrations/` — both `learn` and `govern` share the same Supabase project)
 
-- `learn/supabase/migrations/20260424000000_add_device_ingest_columns.sql` — add new columns to `hardware_inventory`
-- `learn/supabase/migrations/20260424000001_add_integration_columns_to_org_profile.sql` — add device_source + Vault credential columns to `org_profile`
-- `learn/supabase/migrations/20260424000002_drop_intune_tenant_id_from_org_profile.sql` — drop redundant `intune_tenant_id` (reuse `azure_tenant_id`)
+- [x] `learn/supabase/migrations/20260424000000_add_device_ingest_columns.sql` — add new columns to `hardware_inventory`
+- [x] `learn/supabase/migrations/20260424000001_add_integration_columns_to_org_profile.sql` — add device_source + Vault credential columns to `org_profile`
+- [x] `learn/supabase/migrations/20260424000002_drop_intune_tenant_id_from_org_profile.sql` — drop redundant `intune_tenant_id` (reuse `azure_tenant_id`)
+- [x] `learn/supabase/migrations/20260424000003_vault_secret_helper.sql` — `public.get_vault_secret()` RPC for edge function Vault reads
+- [x] `learn/supabase/migrations/20260424000004_vault_upsert_helper.sql` — `public.upsert_vault_secret()` RPC for UI Vault writes
 
 **Edge function**
 
-- `learn/supabase/functions/device-ingest/intune.ts` — Intune Graph client
-- `learn/supabase/functions/device-ingest/atera.ts` — Atera REST client
-- `learn/supabase/functions/device-ingest/normalise.ts` — field normaliser
-- `learn/supabase/functions/device-ingest/index.ts` — main handler
-- `learn/supabase/functions/device-ingest/index.test.ts` — Deno unit tests
-- `learn/supabase/functions/device-ingest/deno.json` — Deno config
-- `learn/supabase/config.toml` — `[functions.device-ingest]` entry
+- [x] `learn/supabase/functions/device-ingest/intune.ts` — Intune Graph client (OAuth2 client-credentials, paginated `managedDevices`)
+- [x] `learn/supabase/functions/device-ingest/atera.ts` — Atera REST client (paginated `/agents/customer/{id}`)
+- [x] `learn/supabase/functions/device-ingest/normalise.ts` — field normaliser for both sources
+- [x] `learn/supabase/functions/device-ingest/index.ts` — main handler; deployed
+- [x] `learn/supabase/functions/device-ingest/index.test.ts` — Deno unit tests
+- [x] `learn/supabase/functions/device-ingest/deno.json` — Deno config
+- [x] `learn/supabase/config.toml` — `[functions.device-ingest]` entry
 
 **Organisation module / Govern admin UI**
 
-- Device source selector + credential fields in SSO settings panel
-- Test connection button (dry-run sync)
+- [x] "Sign In & Security" card renamed to **"Sign In & Devices"**
+- [x] "Azure Tenant ID" label renamed to **"Directory (tenant) ID"**
+- [x] Device Management section added (hidden in Learn mode via `isLearnMode`)
+- [x] Toggle maps to `device_source` (null = off)
+- [x] Source selector (Intune / Atera) with conditional credential fields
+- [x] Intune: Application (client) ID + Client Secret (write-only, Vault-backed)
+- [x] Atera: API Key (write-only, Vault-backed) + Customer ID
+- [x] **Save credentials** button — writes secrets to Vault, stores name in `org_profile`
+- [x] **Test connection** button — calls `POST /v1/sync?dry_run=true` with user JWT (admin roles only)
+- [x] "Signatory Information" card renamed to **"Key People & Compliance"**; Key Personnel section moved first; CEM/HIB/DPE signatory sections hidden in Learn mode
+
+**Sync schedule**
+
+- [x] `deploy/scripts/setup-cron-jobs.sh` — `device-sync-nightly` job added (02:30 UTC daily); called automatically by `onboard-client.sh` during provisioning
+- [ ] "Sync now" button in UI (deferred — cron covers scheduled syncs; can add later)
 
 **Docs & provisioning**
 
-- `govern/docs/DEVICE_INGEST_API_REFERENCE.md` — API reference for 3rd party developer
-- Provision `GOVERN_API_KEY` as a Supabase secret during client onboarding (added to `deploy/scripts/onboard-client.sh`)
+- [x] `GOVERN_API_KEY` provisioned via `deploy/scripts/provision-govern-api-key.sh` — already called by `onboard-client.sh`; generates both `LEARN_API_KEY` and `GOVERN_API_KEY` and prints handover sheet
+- [x] `govern/docs/DEVICE_INGEST_API_REFERENCE.md` — ready to hand to 3rd party developer
+- [x] `govern/docs/DEVICE_INGEST_CLIENT_GUIDE.md` — implementation team guide (field coverage, setup steps, cron note, available-but-not-mapped fields, troubleshooting)
+- [x] `docs/SHIELD_PLAN.md` — SHIELD product & architecture plan created (Phase 1/1.5/2 roadmap, API field coverage appendix)
+
+**Hardware inventory UI (pending)**
+
+- [ ] Surface new fields in govern hardware inventory views: `source`, `last_seen_at`, `processor`, `memory`, `ip_address`, `mac_addresses`, `last_logged_user`
 
 ---
 

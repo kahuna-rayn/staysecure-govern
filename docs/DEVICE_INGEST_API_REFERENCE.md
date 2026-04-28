@@ -34,11 +34,13 @@ Returns a paginated list of all devices in the hardware inventory.
 
 **Query parameters**
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | integer | `1` | Page number (1-based) |
-| `page_size` | integer | `100` | Results per page (max `200`) |
-| `updated_since` | ISO 8601 string | — | Only return devices updated at or after this timestamp |
+
+| Parameter       | Type            | Default | Description                                            |
+| --------------- | --------------- | ------- | ------------------------------------------------------ |
+| `page`          | integer         | `1`     | Page number (1-based)                                  |
+| `page_size`     | integer         | `100`   | Results per page (max `200`)                           |
+| `updated_since` | ISO 8601 string | —       | Only return devices updated at or after this timestamp |
+
 
 **Example request**
 
@@ -107,9 +109,11 @@ Returns a single device by its UUID.
 
 **Path parameters**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | UUID | The device `id` from a previous list response |
+
+| Parameter | Type | Description                                   |
+| --------- | ---- | --------------------------------------------- |
+| `id`      | UUID | The device `id` from a previous list response |
+
 
 **Example request**
 
@@ -134,45 +138,49 @@ Authorization: Bearer <GOVERN_API_KEY>
 
 ## Field reference
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | UUID | Unique identifier in govern |
-| `device_name` | string | Hostname / computer name |
-| `serial_number` | string | Hardware serial number |
-| `asset_type` | string | `laptop`, `desktop`, `mobile`, `computer` |
-| `asset_owner` | string | Display name of the assigned user |
-| `user_id` | UUID \| null | Linked user profile UUID (null if unresolved) |
-| `manufacturer` | string \| null | Hardware manufacturer |
-| `model` | string \| null | Device model name |
-| `os_type` | string \| null | Operating system family: `Windows`, `macOS`, `Linux` |
-| `os_version` | string \| null | OS version string |
-| `os_edition` | string \| null | OS edition / SKU |
-| `status` | string \| null | `Active`, `Inactive`, `Pending Retirement` |
-| `source` | string \| null | `intune` or `atera` — originating system |
-| `external_id` | string \| null | ID in the originating system |
-| `asset_location` | string \| null | Location string as reported by the source system |
-| `ip_address` | string \| null | Current IP address (Atera only) |
-| `mac_addresses` | string \| null | MAC address(es), comma-separated (Intune only) |
-| `domain_workgroup` | string \| null | Windows domain or workgroup (Atera only) |
-| `last_seen_at` | ISO 8601 \| null | Last time the device was online (Atera only) |
-| `last_logged_user` | string \| null | Last Windows login name (Atera only) |
-| `processor` | string \| null | CPU description (Atera only) |
-| `memory` | string \| null | RAM description (Atera only) |
-| `antivirus` | string \| null | Antivirus product name (Atera only) |
-| `last_synced_at` | ISO 8601 \| null | Last time the source system confirmed the device |
-| `created_at` | ISO 8601 \| null | When the record was first created in govern |
-| `updated_at` | ISO 8601 \| null | When the record was last updated |
+
+| Field              | Type            | Description                                          |
+| ------------------ | --------------- | ---------------------------------------------------- |
+| `id`               | UUID            | Unique identifier in govern                          |
+| `device_name`      | string          | Hostname / computer name                             |
+| `serial_number`    | string          | Hardware serial number                               |
+| `asset_type`       | string          | `laptop`, `desktop`, `mobile`, `computer`            |
+| `asset_owner`      | string          | Display name of the assigned user                    |
+| `user_id`          | UUID | null     | Linked user profile UUID (null if unresolved)        |
+| `manufacturer`     | string | null   | Hardware manufacturer                                |
+| `model`            | string | null   | Device model name                                    |
+| `os_type`          | string | null   | Operating system family: `Windows`, `macOS`, `Linux` |
+| `os_version`       | string | null   | OS version string                                    |
+| `os_edition`       | string | null   | OS edition / SKU                                     |
+| `status`           | string | null   | `Active`, `Inactive`, `Pending Retirement`           |
+| `source`           | string | null   | `intune` or `atera` — originating system             |
+| `external_id`      | string | null   | ID in the originating system                         |
+| `asset_location`   | string | null   | Location string as reported by the source system     |
+| `ip_address`       | string | null   | Current IP address (Atera only)                      |
+| `mac_addresses`    | string | null   | MAC address(es), comma-separated (Intune only)       |
+| `domain_workgroup` | string | null   | Windows domain or workgroup (Atera only)             |
+| `last_seen_at`     | ISO 8601 | null | Last time the device was online (Atera only)         |
+| `last_logged_user` | string | null   | Last Windows login name (Atera only)                 |
+| `processor`        | string | null   | CPU description (Atera only)                         |
+| `memory`           | string | null   | RAM description (Atera only)                         |
+| `antivirus`        | string | null   | Antivirus product name (Atera only)                  |
+| `last_synced_at`   | ISO 8601 | null | Last time the source system confirmed the device     |
+| `created_at`       | ISO 8601 | null | When the record was first created in govern          |
+| `updated_at`       | ISO 8601 | null | When the record was last updated                     |
+
 
 ---
 
 ## Error responses
 
-| Status | Meaning |
-|--------|---------|
-| `401` | Missing or invalid `GOVERN_API_KEY` |
-| `400` | Bad request — invalid UUID format or `updated_since` value |
-| `404` | Device not found |
-| `500` | Internal server error — contact StaySecure support |
+
+| Status | Meaning                                                    |
+| ------ | ---------------------------------------------------------- |
+| `401`  | Missing or invalid `GOVERN_API_KEY`                        |
+| `400`  | Bad request — invalid UUID format or `updated_since` value |
+| `404`  | Device not found                                           |
+| `500`  | Internal server error — contact StaySecure support         |
+
 
 All errors return a JSON body:
 
@@ -257,6 +265,8 @@ function getAllDevices($baseUrl, $apiKey) {
 
 ## Notes
 
-- The inventory is refreshed nightly by an automated sync from the client's device management system (Intune or Atera). There is no on-demand refresh endpoint.
+- The inventory is refreshed nightly at 02:30 UTC by an automated sync from the client's device management system (Intune or Atera). There is no on-demand refresh endpoint.
+- **For incremental pulls, use `updated_since`.** Rather than fetching the full device list on every run, pass the timestamp of your last successful pull. Only devices added or changed since that time will be returned, keeping payloads small as device counts grow.
 - `user_id` is populated automatically for Intune-sourced devices where the device's UPN matches a user email in govern. For Atera-sourced devices, it may be null until manually assigned by a govern administrator.
 - The `source` field is consistent for all devices in a given client deployment — a client uses either Intune or Atera, not both.
+
