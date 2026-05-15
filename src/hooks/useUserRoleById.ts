@@ -32,14 +32,40 @@ export const useUserRoleById = (userId?: string) => {
   const updateRoleMutation = useMutation({
     mutationFn: async (newRole: AppRole) => {
       if (!userId) throw new Error('User ID is required');
-      
-      // Use upsert to insert if doesn't exist, update if exists
-      const { error } = await supabase
+
+      // Map role → product_license_assignments.access_level (author not applicable in Govern)
+      const accessLevelMap: Partial<Record<AppRole, string>> = {
+        client_admin: 'admin',
+        user: 'user',
+        manager: 'user',
+      };
+      const newAccessLevel = accessLevelMap[newRole] ?? null;
+
+      // ── Update user_roles ─────────────────────────────────────────────────
+      const { error: roleError } = await supabase
         .from('user_roles')
         .update({ role: newRole })
         .eq('user_id', userId);
-  
-      if (error) throw error;
+      if (roleError) throw roleError;
+
+      // ── Sync product_license_assignments via SECURITY DEFINER RPC ────────
+      if (newAccessLevel !== null) {
+        const { data: existing } = await supabase
+          .from('product_license_assignments')
+          .select('license_id')
+          .eq('user_id', userId)
+          .limit(1)
+          .maybeSingle();
+
+        if (existing?.license_id) {
+          const { error: assignError } = await (supabase.rpc as any)('update_user_access_level', {
+            p_user_id: userId,
+            p_license_id: existing.license_id,
+            p_access_level: newAccessLevel,
+          });
+          if (assignError) console.warn('Could not sync license assignment:', assignError.message);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-role', userId] });

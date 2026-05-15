@@ -104,7 +104,7 @@ const AppContentRouter = () => {
 const AppContent = () => {
   const { user, loading } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
-  const { clientConfig } = useClient();
+  const { clientId, clientConfig } = useClient();
 
   if (loading || roleLoading) {
     return (
@@ -119,7 +119,10 @@ const AppContent = () => {
     return (
       <div className="min-h-screen bg-learning-background flex items-center justify-center p-4">
         <div className="w-full max-w-md relative">
-          <LoginForm displayName={clientConfig?.displayName} />
+          <LoginForm
+            displayName={clientConfig?.displayName}
+            mfaIssuer={clientId ? `StaySecure Govern (${clientId})` : undefined}
+          />
         </div>
       </div>
     );

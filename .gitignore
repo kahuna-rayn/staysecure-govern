@@ -9,6 +9,10 @@ lerna-debug.log*
 
 node_modules
 dist
+
+# Supabase CLI local cache
+supabase/.temp/
+
 dist-ssr
 *.local
 

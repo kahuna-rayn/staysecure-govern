@@ -82,6 +82,33 @@ export type Database = {
           },
         ]
       }
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key_hash: string
+          last_used_at: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          last_used_at?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          last_used_at?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
       breach_management_team: {
         Row: {
           activity: string | null
@@ -308,6 +335,7 @@ export type Database = {
           language: string
           product_id: string
           seats: number
+          seats_author: number
           start_date: string | null
           term: number
         }
@@ -318,6 +346,7 @@ export type Database = {
           language: string
           product_id: string
           seats: number
+          seats_author?: number
           start_date?: string | null
           term: number
         }
@@ -328,6 +357,7 @@ export type Database = {
           language?: string
           product_id?: string
           seats?: number
+          seats_author?: number
           start_date?: string | null
           term?: number
         }
@@ -425,7 +455,9 @@ export type Database = {
           document_id: string
           document_version: number
           due_date: string | null
+          first_opened_at: string | null
           notes: string | null
+          open_count: number
           reminder_sent: boolean
           status: string
           user_id: string
@@ -438,7 +470,9 @@ export type Database = {
           document_id: string
           document_version: number
           due_date?: string | null
+          first_opened_at?: string | null
           notes?: string | null
+          open_count?: number
           reminder_sent?: boolean
           status?: string
           user_id: string
@@ -451,7 +485,9 @@ export type Database = {
           document_id?: string
           document_version?: number
           due_date?: string | null
+          first_opened_at?: string | null
           notes?: string | null
+          open_count?: number
           reminder_sent?: boolean
           status?: string
           user_id?: string
@@ -523,6 +559,47 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "roles"
             referencedColumns: ["role_id"]
+          },
+        ]
+      }
+      document_signatures: {
+        Row: {
+          assignment_id: string
+          document_id: string
+          ip_address: unknown
+          signature_id: string
+          signed_at: string
+          typed_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          assignment_id: string
+          document_id: string
+          ip_address?: unknown
+          signature_id?: string
+          signed_at?: string
+          typed_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          assignment_id?: string
+          document_id?: string
+          ip_address?: unknown
+          signature_id?: string
+          signed_at?: string
+          typed_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_signatures_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "document_assignments"
+            referencedColumns: ["assignment_id"]
           },
         ]
       }
@@ -838,6 +915,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      govern_webhook_config: {
+        Row: {
+          api_key_hash: string
+          created_at: string
+          endpoint_url: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          api_key_hash: string
+          created_at?: string
+          endpoint_url: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          api_key_hash?: string
+          created_at?: string
+          endpoint_url?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       hardware_inventory: {
         Row: {
@@ -1559,6 +1663,13 @@ export type Database = {
             referencedRelation: "lesson_answers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lesson_answer_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
         ]
       }
       lesson_answers: {
@@ -2201,7 +2312,6 @@ export type Database = {
           id: string
           intune_client_id: string | null
           intune_client_secret: string | null
-          intune_tenant_id: string | null
           number_of_employees: number | null
           number_of_executives: number | null
           org_logo_url: string | null
@@ -2228,7 +2338,6 @@ export type Database = {
           id?: string
           intune_client_id?: string | null
           intune_client_secret?: string | null
-          intune_tenant_id?: string | null
           number_of_employees?: number | null
           number_of_executives?: number | null
           org_logo_url?: string | null
@@ -2255,7 +2364,6 @@ export type Database = {
           id?: string
           intune_client_id?: string | null
           intune_client_secret?: string | null
-          intune_tenant_id?: string | null
           number_of_employees?: number | null
           number_of_executives?: number | null
           org_logo_url?: string | null
@@ -3284,6 +3392,13 @@ export type Database = {
             referencedRelation: "roles"
             referencedColumns: ["role_id"]
           },
+          {
+            foreignKeyName: "fk_user_profile_roles_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -3304,6 +3419,48 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_outbox: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          delivered_at: string | null
+          entity_id: string
+          entity_table: string
+          event_type: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          payload: Json
+          status: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          delivered_at?: string | null
+          entity_id: string
+          entity_table: string
+          event_type: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          payload: Json
+          status?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          delivered_at?: string | null
+          entity_id?: string
+          entity_table?: string
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          payload?: Json
+          status?: string
         }
         Relationships: []
       }
@@ -3457,7 +3614,7 @@ export type Database = {
       }
       fix_existing_outdated_flags: { Args: never; Returns: undefined }
       generate_content_hash: {
-        Args: { content: string; media_alt: string }
+        Args: { content: string; media_alt?: string }
         Returns: string
       }
       generate_document_assignments: {
@@ -3649,6 +3806,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_vault_secret: { Args: { secret_name: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3662,8 +3820,35 @@ export type Database = {
         Args: { _manager_id: string; _user_id: string }
         Returns: boolean
       }
+      log_translation_change: {
+        Args: {
+          p_affected_translations: number
+          p_change_magnitude: string
+          p_change_type: string
+          p_character_difference: number
+          p_estimated_cost: number
+          p_field_name: string
+          p_lesson_id: string
+          p_new_hash: string
+          p_new_value: string
+          p_old_hash: string
+          p_old_value: string
+          p_record_id: string
+          p_table_name: string
+          p_updated_by: string
+        }
+        Returns: undefined
+      }
       mark_lesson_translations_outdated_manual: {
         Args: { lesson_uuid: string }
+        Returns: undefined
+      }
+      record_document_open: {
+        Args: { p_document_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      record_document_open_self: {
+        Args: { p_document_id: string }
         Returns: undefined
       }
       refresh_outdated_status: { Args: never; Returns: undefined }
@@ -3690,6 +3875,10 @@ export type Database = {
         }[]
       }
       trigger_lesson_reminders: { Args: never; Returns: Json }
+      upsert_vault_secret: {
+        Args: { secret_name: string; secret_value: string }
+        Returns: undefined
+      }
     }
     Enums: {
       access_level_type: "admin" | "manager" | "user" | "super_admin" | "author"

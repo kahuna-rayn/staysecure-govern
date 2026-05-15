@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import debug from '@/utils/debug';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToAssets }) => {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { hardwareInventory, softwareInventory, accountInventory, loading } = useInventory();
   const { profiles } = useUserProfiles();
@@ -972,7 +974,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigateToImport, onNavigateToA
     if (onNavigateToAssets) {
       onNavigateToAssets();
     } else {
-      alert('Navigate to Assets Management to add new assets');
+      toast({
+        title: 'Assets Management',
+        description: 'Navigate to Assets Management to add new assets.',
+      });
     }
   };
 

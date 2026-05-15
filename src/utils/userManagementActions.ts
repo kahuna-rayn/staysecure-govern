@@ -131,26 +131,25 @@ export const handleCreateUser = async (
   }
 };
 
+/** Deletes the profile row. Call only after the user confirmed in app UI (AlertDialog). */
 export const handleDeleteUser = async (userId: string) => {
-  if (confirm('Are you sure you want to delete this user?')) {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-      
-      if (error) throw error;
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
 
-      toast({
-        title: "User profile deleted",
-        description: "User profile has been successfully deleted.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    if (error) throw error;
+
+    toast({
+      title: "User profile deleted",
+      description: "User profile has been successfully deleted.",
+    });
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
   }
 };

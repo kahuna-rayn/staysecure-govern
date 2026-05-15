@@ -132,7 +132,7 @@ const ProfileBasicInfo: React.FC<ProfileBasicInfoProps> = ({
         <EditableField
           value={phone || 'Not provided'}
           fieldKey="phone"
-          placeholder="Phone number"
+          placeholder="Business phone number"
           onSave={onSave}
           isEditing={editingField === 'phone'}
           onEdit={onEdit}

@@ -367,7 +367,7 @@ verify_jwt = false
 
 **Docs & provisioning**
 
-- [x] `GOVERN_API_KEY` provisioned via `deploy/scripts/provision-govern-api-key.sh` — already called by `onboard-client.sh`; generates both `LEARN_API_KEY` and `GOVERN_API_KEY` and prints handover sheet
+- [x] `GOVERN_API_KEY` provisioned via `deploy/scripts/provision-api-keys.sh` — already called by `onboard-client.sh`; generates both `LEARN_API_KEY` and `GOVERN_API_KEY` and prints handover sheet
 - [x] `govern/docs/DEVICE_INGEST_API_REFERENCE.md` — ready to hand to 3rd party developer
 - [x] `govern/docs/DEVICE_INGEST_CLIENT_GUIDE.md` — implementation team guide (field coverage, setup steps, cron note, available-but-not-mapped fields, troubleshooting)
 - [x] `docs/SHIELD_PLAN.md` — SHIELD product & architecture plan created (Phase 1/1.5/2 roadmap, API field coverage appendix)
